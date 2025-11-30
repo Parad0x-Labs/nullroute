@@ -1277,11 +1277,7 @@
       state.trades.list.unshift(trade);
       if (state.trades.list.length > 100) state.trades.list.pop();
       
-      // Alert for big trades
-      if (actualUsd > 50) {
-        addAlert('whale', isBuy ? '🐋' : '🔴', `${isBuy ? 'WHALE BUY' : 'BIG SELL'}: $${fmt(actualUsd)}`, txSig);
-      }
-      
+      // Whale alerts removed - too noisy for small trades
       return trade;
     }
     
