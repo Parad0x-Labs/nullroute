@@ -1297,37 +1297,15 @@
       if (state.alerts.length > 50) state.alerts.pop();
     }
     
-    // FUD/HYPE Events
+    // FUD/HYPE Events - DISABLED (simulation mode off)
     function triggerHype() {
-      if (Date.now() < state.cooldowns.hype) return;
-      
-      state.cooldowns.hype = Date.now() + COOLDOWN_MS;
-      state.activeEvent = {
-        type: 'HYPE',
-        buyBias: 0.80,
-        sizeMult: 3.0,
-        remaining: 30,
-        startedAt: Date.now(),
-      };
-      
-      addAlert('event', '🚀', 'HYPE EVENT TRIGGERED! Buy pressure increasing for 60s');
-      updateCooldowns();
+      // DISABLED - simulation mode is off
+      addAlert('info', 'ℹ️', 'Simulation mode disabled - watching real devnet trades');
     }
     
     function triggerFud() {
-      if (Date.now() < state.cooldowns.fud) return;
-      
-      state.cooldowns.fud = Date.now() + COOLDOWN_MS;
-      state.activeEvent = {
-        type: 'FUD',
-        buyBias: 0.20,
-        sizeMult: 3.0,
-        remaining: 30,
-        startedAt: Date.now(),
-      };
-      
-      addAlert('event', '📉', 'FUD EVENT TRIGGERED! Sell pressure increasing for 60s');
-      updateCooldowns();
+      // DISABLED - simulation mode is off  
+      addAlert('info', 'ℹ️', 'Simulation mode disabled - watching real devnet trades');
     }
     
     function updateCooldowns() {
@@ -1654,8 +1632,8 @@
     async function fetchRealData() {
       try {
         document.getElementById('live-status').textContent = '🔄 Syncing...';
-        // For now, simulation - real RPC calls would go here
-        document.getElementById('live-status').innerHTML = '🟢 <span style="color: var(--green);">Simulating</span>';
+        // AUTO-SIM DISABLED - Waiting for real devnet trades
+        document.getElementById('live-status').innerHTML = '⏳ <span style="color: var(--orange);">Ready for real trades</span>';
       } catch (e) {
         document.getElementById('live-status').textContent = '🔴 RPC Error';
       }
@@ -1668,11 +1646,17 @@
       updateCooldowns();
       fetchRealData();
       
-      setInterval(tick, 2000);
+      // AUTO-SIMULATION DISABLED - Now waiting for real devnet trades
+      // setInterval(tick, 2000); // <-- DISABLED: Was generating fake trades
+      
       setInterval(updateCooldowns, 1000);
       setInterval(fetchRealData, 30000);
       
       window.addEventListener('resize', drawChart);
+      
+      // Show waiting message
+      document.getElementById('live-status').innerHTML = '⏳ <span style="color: var(--orange);">Waiting for real trades</span>';
+      console.log('🛑 Auto-simulation DISABLED. Waiting for real devnet activity.');
     }
     
     init();
