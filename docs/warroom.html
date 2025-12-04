@@ -451,8 +451,8 @@
   
   <div class="tabs">
     <div class="tab active" data-tab="map">🗺️ Network Map</div>
+    <div class="tab" data-tab="config">⚙️ Config</div>
     <div class="tab" data-tab="live">⚡ Live Jobs</div>
-    <div class="tab" data-tab="jobs">💼 Job Catalog</div>
     <div class="tab" data-tab="score">🏆 Scores</div>
     <div class="tab" data-tab="deploy">📦 Agent Shop</div>
   </div>
@@ -515,6 +515,180 @@
           <div style="margin-top:8px;font-size:9px;color:var(--dim);">~$150/SOL rate</div>
         </div>
       </div>
+    </div>
+  </div>
+  
+  <!-- CONFIG TAB -->
+  <div class="tab-content" id="tab-config">
+    <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+      
+      <!-- Gear Test -->
+      <div class="job-card" style="border-color: var(--cyan); margin-bottom: 20px;">
+        <div class="section-title">📊 GEAR TEST</div>
+        <div id="gearTestResults" style="display: none;">
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px;">
+            <div style="text-align: center; padding: 15px; background: var(--card-alt); border-radius: 6px;">
+              <div style="font-size: 24px;">💻</div>
+              <div style="font-size: 20px; font-weight: bold; color: var(--green);" id="gearCpu">--</div>
+              <div style="font-size: 10px; color: var(--dim);">CPU Cores</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: var(--card-alt); border-radius: 6px;">
+              <div style="font-size: 24px;">🧠</div>
+              <div style="font-size: 20px; font-weight: bold; color: var(--green);" id="gearRam">--</div>
+              <div style="font-size: 10px; color: var(--dim);">RAM (GB)</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: var(--card-alt); border-radius: 6px;">
+              <div style="font-size: 24px;">📶</div>
+              <div style="font-size: 20px; font-weight: bold; color: var(--green);" id="gearSpeed">--</div>
+              <div style="font-size: 10px; color: var(--dim);">Mbps</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: var(--card-alt); border-radius: 6px;">
+              <div style="font-size: 24px;">⏱️</div>
+              <div style="font-size: 20px; font-weight: bold; color: var(--green);" id="gearLatency">--</div>
+              <div style="font-size: 10px; color: var(--dim);">Latency (ms)</div>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: var(--dim); padding: 10px; background: rgba(63, 185, 80, 0.1); border-radius: 4px;">
+            💡 <strong>Suggested limits based on your hardware are pre-filled below</strong>
+          </div>
+        </div>
+        <div id="gearTestPrompt">
+          <div style="text-align: center; padding: 30px;">
+            <div style="font-size: 48px; margin-bottom: 15px;">🔬</div>
+            <div style="margin-bottom: 15px;">Run a gear test to detect your hardware capabilities</div>
+            <button onclick="runGearTest()" class="download-btn ready" style="padding: 12px 30px; font-size: 14px;">🚀 Run Gear Test</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Resource Limits -->
+      <div class="job-card" style="margin-bottom: 20px;">
+        <div class="section-title">⚙️ RESOURCE LIMITS</div>
+        <div style="display: grid; gap: 20px;">
+          <div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span>Max CPU Usage</span>
+              <span style="color: var(--green); font-weight: bold;" id="cpuValue">50%</span>
+            </div>
+            <input type="range" id="cpuSlider" min="10" max="100" value="50" style="width: 100%; accent-color: var(--green);" oninput="updateSlider('cpu')">
+          </div>
+          <div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span>Max RAM</span>
+              <span style="color: var(--green); font-weight: bold;" id="ramValue">2 GB</span>
+            </div>
+            <input type="range" id="ramSlider" min="256" max="8192" value="2048" step="256" style="width: 100%; accent-color: var(--green);" oninput="updateSlider('ram')">
+          </div>
+          <div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span>Max Bandwidth</span>
+              <span style="color: var(--green); font-weight: bold;" id="bwValue">25 Mbps</span>
+            </div>
+            <input type="range" id="bwSlider" min="1" max="100" value="25" style="width: 100%; accent-color: var(--green);" oninput="updateSlider('bw')">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Quota Settings -->
+      <div class="job-card" style="margin-bottom: 20px;">
+        <div class="section-title">📊 DATA QUOTA</div>
+        <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="quotaMode" value="hourly" checked style="accent-color: var(--green);">
+            <span>Per Hour</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="quotaMode" value="daily" style="accent-color: var(--green);">
+            <span>Per 24 Hours</span>
+          </label>
+        </div>
+        <div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>Max Data</span>
+            <span style="color: var(--green); font-weight: bold;" id="quotaValue">5 GB</span>
+          </div>
+          <input type="range" id="quotaSlider" min="1" max="100" value="5" style="width: 100%; accent-color: var(--green);" oninput="updateSlider('quota')">
+        </div>
+      </div>
+      
+      <!-- Job Types -->
+      <div class="job-card" style="margin-bottom: 20px;">
+        <div class="section-title">✅ AUTO-ACCEPT JOB TYPES</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--card-alt); border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="jobRelay" checked style="accent-color: var(--green); width: 18px; height: 18px;">
+            <span>🔗 Relay (VPN traffic)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--card-alt); border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="jobImage" checked style="accent-color: var(--green); width: 18px; height: 18px;">
+            <span>📸 AI Image</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--card-alt); border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="jobAudio" checked style="accent-color: var(--green); width: 18px; height: 18px;">
+            <span>🎤 AI Audio</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--card-alt); border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="jobText" checked style="accent-color: var(--green); width: 18px; height: 18px;">
+            <span>📄 AI Text</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--card-alt); border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="jobVideo" style="accent-color: var(--green); width: 18px; height: 18px;">
+            <span>🎬 AI Video</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--card-alt); border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="jobVerify" checked style="accent-color: var(--green); width: 18px; height: 18px;">
+            <span>✓ Verify</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--card-alt); border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="jobGpu" style="accent-color: var(--green); width: 18px; height: 18px;">
+            <span>🎮 GPU Render</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--card-alt); border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="jobJury" style="accent-color: var(--green); width: 18px; height: 18px;">
+            <span>⚖️ Jury Duty</span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Payment Token -->
+      <div class="job-card" style="margin-bottom: 20px;">
+        <div class="section-title">💰 PAYMENT TOKEN</div>
+        <div style="display: flex; gap: 15px;">
+          <label style="flex: 1; display: flex; align-items: center; gap: 12px; padding: 20px; background: var(--card-alt); border-radius: 8px; cursor: pointer; border: 2px solid var(--border);" id="paymentSolLabel">
+            <input type="radio" name="paymentToken" value="SOL" checked style="accent-color: var(--green); width: 20px; height: 20px;" onchange="updatePaymentSelection()">
+            <div>
+              <div style="font-size: 24px;">◎</div>
+              <div style="font-weight: bold;">SOL</div>
+              <div style="font-size: 10px; color: var(--dim);">Direct payment</div>
+            </div>
+          </label>
+          <label style="flex: 1; display: flex; align-items: center; gap: 12px; padding: 20px; background: var(--card-alt); border-radius: 8px; cursor: pointer; border: 2px solid var(--border);" id="paymentUsdcLabel">
+            <input type="radio" name="paymentToken" value="USDC" style="accent-color: var(--green); width: 20px; height: 20px;" onchange="updatePaymentSelection()">
+            <div>
+              <div style="font-size: 24px;">💵</div>
+              <div style="font-weight: bold;">USDC</div>
+              <div style="font-size: 10px; color: var(--dim);">Auto-swap via Jupiter</div>
+            </div>
+          </label>
+        </div>
+        <div id="usdcNote" style="display: none; margin-top: 12px; padding: 10px; background: rgba(88, 166, 255, 0.1); border-radius: 4px; font-size: 11px;">
+          ℹ️ Earnings accumulate in SOL → Auto-swap to USDC when ≥$0.50 → Sent to your wallet
+        </div>
+      </div>
+      
+      <!-- Agent Toggle -->
+      <div class="job-card" style="border-color: var(--green);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 18px; font-weight: bold;">Agent Status</div>
+            <div style="font-size: 12px; color: var(--dim);" id="agentStatusText">Connect wallet to enable</div>
+          </div>
+          <button id="agentToggleBtn" onclick="toggleAgent()" class="download-btn" style="padding: 15px 40px; font-size: 16px; background: var(--card-alt); opacity: 0.5;" disabled>
+            🔴 OFFLINE
+          </button>
+        </div>
+      </div>
+      
     </div>
   </div>
   
@@ -1117,23 +1291,12 @@ function renderYourAgent() {
 function renderAgentList() {
   const list = document.getElementById('agentList');
   
-  if (agents.length === 0 && !connectedWallet) {
+  if (agents.length === 0) {
     list.innerHTML = '<div class="empty-state" style="padding: 20px;">No other agents online</div>';
     return;
   }
   
-  // Generate some simulated agents when connected
-  if (connectedWallet && agents.length === 0) {
-    const simCities = ['Berlin', 'Tokyo', 'New York', 'London', 'Sydney'];
-    agents = simCities.map((city, i) => ({
-      wallet: 'Agent' + (i+1) + 'x'.repeat(30),
-      city,
-      latency: 50 + Math.floor(Math.random() * 150),
-      bandwidth: 20 + Math.floor(Math.random() * 80),
-      capLevel: 1 + Math.floor(Math.random() * 4)
-    }));
-  }
-  
+  // Only show REAL agents from devnet
   list.innerHTML = agents.slice(0, 10).map(agent => `
     <div class="agent-item">
       <div class="agent-addr">${agent.wallet.slice(0, 8)}...${agent.wallet.slice(-4)}</div>
@@ -1453,6 +1616,324 @@ onConnected = function(wallet) {
   originalOnConnected(wallet);
   initLiveJobs();
   renderAgentList();
+};
+
+// ============== AGENT CONFIG ==============
+
+let agentConfig = {
+  cpu: 50,
+  ram: 2048,
+  bandwidth: 25,
+  quotaMode: 'hourly',
+  quota: 5,
+  paymentToken: 'SOL',
+  jobs: {
+    relay: true,
+    image: true,
+    audio: true,
+    text: true,
+    video: false,
+    verify: true,
+    gpu: false,
+    jury: false
+  },
+  isRunning: false
+};
+
+// Load config from localStorage
+function loadConfig() {
+  const saved = localStorage.getItem('agentConfig');
+  if (saved) {
+    agentConfig = { ...agentConfig, ...JSON.parse(saved) };
+    applyConfigToUI();
+  }
+}
+
+// Save config to localStorage
+function saveConfig() {
+  localStorage.setItem('agentConfig', JSON.stringify(agentConfig));
+  logAudit('CONFIG_SAVE', 'Agent config saved', agentConfig);
+}
+
+// Apply saved config to UI
+function applyConfigToUI() {
+  document.getElementById('cpuSlider').value = agentConfig.cpu;
+  document.getElementById('ramSlider').value = agentConfig.ram;
+  document.getElementById('bwSlider').value = agentConfig.bandwidth;
+  document.getElementById('quotaSlider').value = agentConfig.quota;
+  
+  document.querySelector(`input[name="quotaMode"][value="${agentConfig.quotaMode}"]`).checked = true;
+  document.querySelector(`input[name="paymentToken"][value="${agentConfig.paymentToken}"]`).checked = true;
+  
+  document.getElementById('jobRelay').checked = agentConfig.jobs.relay;
+  document.getElementById('jobImage').checked = agentConfig.jobs.image;
+  document.getElementById('jobAudio').checked = agentConfig.jobs.audio;
+  document.getElementById('jobText').checked = agentConfig.jobs.text;
+  document.getElementById('jobVideo').checked = agentConfig.jobs.video;
+  document.getElementById('jobVerify').checked = agentConfig.jobs.verify;
+  document.getElementById('jobGpu').checked = agentConfig.jobs.gpu;
+  document.getElementById('jobJury').checked = agentConfig.jobs.jury;
+  
+  updateSlider('cpu');
+  updateSlider('ram');
+  updateSlider('bw');
+  updateSlider('quota');
+  updatePaymentSelection();
+}
+
+// Update slider display
+function updateSlider(type) {
+  switch(type) {
+    case 'cpu':
+      const cpu = document.getElementById('cpuSlider').value;
+      document.getElementById('cpuValue').textContent = cpu + '%';
+      agentConfig.cpu = parseInt(cpu);
+      break;
+    case 'ram':
+      const ram = document.getElementById('ramSlider').value;
+      const ramGB = (ram / 1024).toFixed(1);
+      document.getElementById('ramValue').textContent = ramGB + ' GB';
+      agentConfig.ram = parseInt(ram);
+      break;
+    case 'bw':
+      const bw = document.getElementById('bwSlider').value;
+      document.getElementById('bwValue').textContent = bw + ' Mbps';
+      agentConfig.bandwidth = parseInt(bw);
+      break;
+    case 'quota':
+      const quota = document.getElementById('quotaSlider').value;
+      document.getElementById('quotaValue').textContent = quota + ' GB';
+      agentConfig.quota = parseInt(quota);
+      break;
+  }
+  saveConfig();
+}
+
+// Payment token selection
+function updatePaymentSelection() {
+  const sol = document.getElementById('paymentSolLabel');
+  const usdc = document.getElementById('paymentUsdcLabel');
+  const note = document.getElementById('usdcNote');
+  const selected = document.querySelector('input[name="paymentToken"]:checked').value;
+  
+  agentConfig.paymentToken = selected;
+  
+  if (selected === 'SOL') {
+    sol.style.borderColor = 'var(--green)';
+    usdc.style.borderColor = 'var(--border)';
+    note.style.display = 'none';
+  } else {
+    sol.style.borderColor = 'var(--border)';
+    usdc.style.borderColor = 'var(--green)';
+    note.style.display = 'block';
+  }
+  saveConfig();
+}
+
+// Gear test
+async function runGearTest() {
+  const prompt = document.getElementById('gearTestPrompt');
+  const results = document.getElementById('gearTestResults');
+  
+  prompt.innerHTML = '<div style="text-align:center;padding:30px;"><div style="font-size:32px;">⏳</div><div>Running tests...</div></div>';
+  
+  // Detect CPU cores
+  const cpuCores = navigator.hardwareConcurrency || 4;
+  
+  // Estimate RAM (not accurate but gives idea)
+  const ram = navigator.deviceMemory || 4;
+  
+  // Test bandwidth
+  let speed = 25;
+  let latency = 100;
+  try {
+    const start = performance.now();
+    await fetch('https://api.devnet.solana.com', { method: 'HEAD', mode: 'no-cors' });
+    latency = Math.floor(performance.now() - start);
+    speed = Math.max(10, 100 - latency); // Rough estimate
+  } catch(e) {}
+  
+  // Show results
+  document.getElementById('gearCpu').textContent = cpuCores;
+  document.getElementById('gearRam').textContent = ram;
+  document.getElementById('gearSpeed').textContent = speed;
+  document.getElementById('gearLatency').textContent = latency;
+  
+  // Set suggested values
+  document.getElementById('cpuSlider').value = Math.min(50, cpuCores * 10);
+  document.getElementById('ramSlider').value = Math.min(ram * 512, 4096);
+  document.getElementById('bwSlider').value = Math.min(speed, 50);
+  
+  updateSlider('cpu');
+  updateSlider('ram');
+  updateSlider('bw');
+  
+  prompt.style.display = 'none';
+  results.style.display = 'block';
+  
+  logAudit('GEAR_TEST', 'Hardware scan completed', { cpuCores, ram, speed, latency });
+}
+
+// Toggle agent on/off
+function toggleAgent() {
+  if (!connectedWallet) {
+    alert('Connect wallet first!');
+    return;
+  }
+  
+  const btn = document.getElementById('agentToggleBtn');
+  const status = document.getElementById('agentStatusText');
+  
+  agentConfig.isRunning = !agentConfig.isRunning;
+  
+  if (agentConfig.isRunning) {
+    btn.innerHTML = '🟢 ONLINE';
+    btn.style.background = 'var(--green)';
+    btn.style.color = '#000';
+    status.textContent = 'Auto-picking jobs matching your config';
+    status.style.color = 'var(--green)';
+    
+    logAudit('AGENT_START', 'Agent started', {
+      wallet: connectedWallet,
+      config: agentConfig
+    });
+    
+    // Start auto-picking jobs
+    startAutoPickJobs();
+  } else {
+    btn.innerHTML = '🔴 OFFLINE';
+    btn.style.background = 'var(--card-alt)';
+    btn.style.color = 'var(--text)';
+    status.textContent = 'Agent stopped';
+    status.style.color = 'var(--dim)';
+    
+    logAudit('AGENT_STOP', 'Agent stopped', { wallet: connectedWallet });
+  }
+  
+  saveConfig();
+}
+
+// Auto-pick jobs based on config
+let autoPickInterval = null;
+
+function startAutoPickJobs() {
+  if (autoPickInterval) clearInterval(autoPickInterval);
+  
+  autoPickInterval = setInterval(() => {
+    if (!agentConfig.isRunning || liveJobs.length === 0) return;
+    
+    // Find matching job
+    const matchingJob = liveJobs.find(job => {
+      if (job.category === 'RELAY' && !agentConfig.jobs.relay) return false;
+      if (job.category === 'AI_IMAGE' && !agentConfig.jobs.image) return false;
+      if (job.category === 'AI_AUDIO' && !agentConfig.jobs.audio) return false;
+      if (job.category === 'AI_TEXT' && !agentConfig.jobs.text) return false;
+      if (job.category === 'AI_VIDEO' && !agentConfig.jobs.video) return false;
+      if (job.category === 'VERIFICATION' && !agentConfig.jobs.verify) return false;
+      if (job.category === 'COMPUTE' && !agentConfig.jobs.gpu) return false;
+      return true;
+    });
+    
+    if (matchingJob) {
+      logAudit('JOB_AUTO_CLAIM', 'Auto-claimed job', { jobId: matchingJob.id, type: matchingJob.type });
+      claimJob(matchingJob.id);
+    }
+  }, 5000); // Check every 5 seconds
+}
+
+// ============== CORPORATE AUDIT LOG ==============
+
+const auditLog = [];
+
+function logAudit(action, description, data = {}) {
+  const entry = {
+    id: 'AUD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+    timestamp: new Date().toISOString(),
+    action,
+    description,
+    data,
+    wallet: connectedWallet || 'anonymous',
+    userAgent: navigator.userAgent.substr(0, 50)
+  };
+  
+  auditLog.unshift(entry);
+  
+  // Keep last 1000 entries
+  while (auditLog.length > 1000) auditLog.pop();
+  
+  // Store in localStorage
+  localStorage.setItem('auditLog', JSON.stringify(auditLog.slice(0, 100)));
+  
+  console.log('[AUDIT]', action, description, data);
+}
+
+// Load audit log from localStorage
+function loadAuditLog() {
+  const saved = localStorage.getItem('auditLog');
+  if (saved) {
+    auditLog.push(...JSON.parse(saved));
+  }
+}
+
+// Get audit log for display
+function getAuditLog(limit = 50) {
+  return auditLog.slice(0, limit);
+}
+
+// ============== INIT CONFIG ==============
+
+function initConfig() {
+  loadConfig();
+  loadAuditLog();
+  
+  // Add event listeners for job checkboxes
+  ['Relay', 'Image', 'Audio', 'Text', 'Video', 'Verify', 'Gpu', 'Jury'].forEach(type => {
+    const el = document.getElementById('job' + type);
+    if (el) {
+      el.addEventListener('change', () => {
+        agentConfig.jobs[type.toLowerCase()] = el.checked;
+        saveConfig();
+      });
+    }
+  });
+  
+  // Quota mode
+  document.querySelectorAll('input[name="quotaMode"]').forEach(el => {
+    el.addEventListener('change', () => {
+      agentConfig.quotaMode = el.value;
+      saveConfig();
+    });
+  });
+  
+  // Enable agent toggle if wallet connected
+  if (connectedWallet) {
+    const btn = document.getElementById('agentToggleBtn');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    document.getElementById('agentStatusText').textContent = 'Ready to start';
+  }
+  
+  logAudit('SESSION_START', 'War Room session started', { url: window.location.href });
+}
+
+// Extend init
+const originalInit = init;
+init = function() {
+  originalInit();
+  initConfig();
+};
+
+// Extend onConnected for config
+const origOnConnected2 = onConnected;
+onConnected = function(wallet) {
+  origOnConnected2(wallet);
+  
+  const btn = document.getElementById('agentToggleBtn');
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  document.getElementById('agentStatusText').textContent = 'Ready to start';
+  
+  logAudit('WALLET_CONNECT', 'Wallet connected', { wallet: wallet.slice(0, 8) + '..' });
 };
 
 document.addEventListener('DOMContentLoaded', init);
