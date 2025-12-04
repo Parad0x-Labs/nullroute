@@ -13,11 +13,11 @@
             --bg-surface: #0d0d14;
             --bg-card: #12121c;
             --bg-elevated: #181825;
-            --neon-cyan: #00f5ff;
-            --neon-green: #00ff88;
-            --neon-magenta: #ff00ff;
-            --neon-orange: #ff8800;
-            --neon-red: #ff3366;
+            --neon-cyan: #00d4e0;
+            --neon-green: #00dd77;
+            --neon-magenta: #cc44cc;
+            --neon-orange: #ee7700;
+            --neon-red: #dd3355;
             --neon-purple: #8855ff;
             --cap-vpn: #00d4aa;
             --cap-compute: #00aaff;
@@ -57,9 +57,9 @@
             background: repeating-linear-gradient(
                 0deg,
                 transparent,
-                transparent 2px,
-                rgba(0, 0, 0, 0.1) 2px,
-                rgba(0, 0, 0, 0.1) 4px
+                transparent 3px,
+                rgba(0, 0, 0, 0.03) 3px,
+                rgba(0, 0, 0, 0.03) 6px
             );
             pointer-events: none;
             z-index: 9999;
@@ -100,17 +100,15 @@
             animation: pulse-glow 3s ease-in-out infinite;
         }
         @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 15px var(--neon-cyan); }
-            50% { box-shadow: 0 0 30px var(--neon-magenta); }
+            0%, 100% { box-shadow: 0 0 8px var(--neon-cyan); }
+            50% { box-shadow: 0 0 12px var(--neon-magenta); }
         }
         .logo-text {
             font-family: var(--font-display);
             font-size: 16px;
             font-weight: 700;
             letter-spacing: 3px;
-            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--neon-cyan);
         }
         .logo-sub {
             font-size: 9px;
@@ -137,7 +135,6 @@
             border-color: var(--neon-cyan);
             color: var(--neon-cyan);
             background: rgba(0, 245, 255, 0.1);
-            box-shadow: 0 0 15px rgba(0, 245, 255, 0.2);
         }
         .header-status {
             display: flex;
@@ -151,7 +148,6 @@
             font-size: 18px;
             font-weight: 700;
             color: var(--neon-green);
-            text-shadow: 0 0 10px var(--neon-green);
         }
         .status-label {
             font-size: 9px;
@@ -282,15 +278,15 @@
         @keyframes ping {
             75%, 100% { transform: scale(2); opacity: 0; }
         }
-        .cap-1 { background: var(--cap-vpn); color: var(--cap-vpn); box-shadow: 0 0 10px var(--cap-vpn); }
-        .cap-2 { background: linear-gradient(135deg, var(--cap-vpn), var(--cap-compute)); box-shadow: 0 0 12px var(--cap-compute); }
-        .cap-3 { background: linear-gradient(135deg, var(--cap-compute), var(--cap-verify)); box-shadow: 0 0 15px var(--cap-verify); }
-        .cap-4 { background: linear-gradient(135deg, var(--cap-verify), var(--cap-jury)); box-shadow: 0 0 18px var(--cap-jury); }
-        .cap-5 { background: linear-gradient(135deg, var(--cap-jury), var(--cap-storage), #fff); box-shadow: 0 0 20px #fff; }
-        .my-agent { animation: my-pulse 1s ease-in-out infinite !important; }
+        .cap-1 { background: var(--cap-vpn); color: var(--cap-vpn); box-shadow: 0 0 6px var(--cap-vpn); }
+        .cap-2 { background: linear-gradient(135deg, var(--cap-vpn), var(--cap-compute)); box-shadow: 0 0 6px var(--cap-compute); }
+        .cap-3 { background: linear-gradient(135deg, var(--cap-compute), var(--cap-verify)); box-shadow: 0 0 8px var(--cap-verify); }
+        .cap-4 { background: linear-gradient(135deg, var(--cap-verify), var(--cap-jury)); box-shadow: 0 0 8px var(--cap-jury); }
+        .cap-5 { background: linear-gradient(135deg, var(--cap-jury), var(--cap-storage), #fff); box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        .my-agent { animation: my-pulse 2s ease-in-out infinite !important; }
         @keyframes my-pulse {
-            0%, 100% { box-shadow: 0 0 20px #fff, 0 0 40px var(--neon-cyan); transform: translate(-50%, -50%) scale(1); }
-            50% { box-shadow: 0 0 30px #fff, 0 0 60px var(--neon-magenta); transform: translate(-50%, -50%) scale(1.2); }
+            0%, 100% { box-shadow: 0 0 10px rgba(255,255,255,0.6); transform: translate(-50%, -50%) scale(1); }
+            50% { box-shadow: 0 0 15px rgba(0,245,255,0.6); transform: translate(-50%, -50%) scale(1.1); }
         }
         .agent-card.is-me { border: 1px solid var(--neon-green); background: rgba(0, 255, 136, 0.1); }
         .map-legend {
@@ -367,9 +363,9 @@
             font-weight: 600;
             font-size: 12px;
         }
-        .metric-value.good { color: var(--neon-green); }
-        .metric-value.warn { color: var(--neon-orange); }
-        .metric-value.bad { color: var(--neon-red); }
+        .metric-value.good { color: #44dd88; }
+        .metric-value.warn { color: #ddaa44; }
+        .metric-value.bad { color: #dd6666; }
         .metric-label { color: var(--text-dim); font-size: 8px; }
         /* TELEMETRY BOTTOM */
         .telemetry-bar {
@@ -1241,7 +1237,7 @@ PARADOX AGENT NETWORK
             container.innerHTML = '';
             
             if (agents.length === 0) {
-                container.innerHTML = '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--text-dim); font-size: 12px; text-align: center;">No agents online<br><span style="font-size: 10px;">Connect your agent to appear here</span></div>';
+                container.innerHTML = '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--neon-cyan); font-size: 14px; text-align: center; background: rgba(0,0,0,0.8); padding: 20px 30px; border-radius: 10px; border: 1px solid var(--neon-cyan);">👆 Click <strong>CONNECT</strong> above<br><span style="font-size: 11px; color: var(--text-secondary);">to show your agent on the map</span></div>';
                 return;
             }
             
@@ -1576,25 +1572,100 @@ PARADOX AGENT NETWORK
         function addMyAgent(wallet) {
             // Detect approximate location from timezone
             const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            let coords = { x: 50, y: 40 }; // Default: Europe
+            let coords = { x: 52, y: 30 }; // Default: Central Europe
+            let cityName = 'Your Location';
             
-            // Map timezone to rough coordinates
-            if (tz.includes('America/Los') || tz.includes('America/San')) coords = { x: 12, y: 40 };
-            else if (tz.includes('America/New') || tz.includes('America/Toronto')) coords = { x: 22, y: 35 };
-            else if (tz.includes('America/Chicago')) coords = { x: 17, y: 38 };
-            else if (tz.includes('America/Denver')) coords = { x: 14, y: 38 };
-            else if (tz.includes('America/Sao') || tz.includes('America/Buenos')) coords = { x: 30, y: 68 };
-            else if (tz.includes('Europe/London')) coords = { x: 48, y: 28 };
-            else if (tz.includes('Europe/Paris') || tz.includes('Europe/Berlin')) coords = { x: 51, y: 30 };
-            else if (tz.includes('Europe/Moscow')) coords = { x: 60, y: 28 };
-            else if (tz.includes('Asia/Tokyo')) coords = { x: 85, y: 38 };
-            else if (tz.includes('Asia/Seoul')) coords = { x: 82, y: 40 };
-            else if (tz.includes('Asia/Shanghai') || tz.includes('Asia/Hong')) coords = { x: 76, y: 44 };
-            else if (tz.includes('Asia/Singapore')) coords = { x: 74, y: 56 };
-            else if (tz.includes('Asia/Dubai')) coords = { x: 60, y: 48 };
-            else if (tz.includes('Asia/Kolkata') || tz.includes('Asia/Mumbai')) coords = { x: 68, y: 48 };
-            else if (tz.includes('Australia')) coords = { x: 86, y: 72 };
-            else if (tz.includes('Africa')) coords = { x: 52, y: 55 };
+            // Comprehensive timezone to coordinates mapping
+            const tzMap = {
+                // BALTICS & EASTERN EUROPE
+                'Europe/Vilnius': { x: 55, y: 26, city: 'Vilnius, LT' },
+                'Europe/Riga': { x: 54.5, y: 25, city: 'Riga, LV' },
+                'Europe/Tallinn': { x: 55, y: 23, city: 'Tallinn, EE' },
+                'Europe/Warsaw': { x: 54, y: 28, city: 'Warsaw, PL' },
+                'Europe/Kiev': { x: 57, y: 28, city: 'Kyiv, UA' },
+                'Europe/Kyiv': { x: 57, y: 28, city: 'Kyiv, UA' },
+                'Europe/Minsk': { x: 56, y: 26, city: 'Minsk, BY' },
+                'Europe/Moscow': { x: 60, y: 25, city: 'Moscow, RU' },
+                'Europe/Helsinki': { x: 55, y: 22, city: 'Helsinki, FI' },
+                'Europe/Stockholm': { x: 52, y: 22, city: 'Stockholm, SE' },
+                'Europe/Oslo': { x: 51, y: 22, city: 'Oslo, NO' },
+                'Europe/Copenhagen': { x: 52, y: 25, city: 'Copenhagen, DK' },
+                // WESTERN EUROPE
+                'Europe/London': { x: 48, y: 28, city: 'London, GB' },
+                'Europe/Dublin': { x: 46, y: 27, city: 'Dublin, IE' },
+                'Europe/Paris': { x: 50, y: 30, city: 'Paris, FR' },
+                'Europe/Berlin': { x: 52, y: 28, city: 'Berlin, DE' },
+                'Europe/Amsterdam': { x: 51, y: 28, city: 'Amsterdam, NL' },
+                'Europe/Brussels': { x: 51, y: 29, city: 'Brussels, BE' },
+                'Europe/Zurich': { x: 52, y: 31, city: 'Zurich, CH' },
+                'Europe/Vienna': { x: 53, y: 30, city: 'Vienna, AT' },
+                'Europe/Prague': { x: 53, y: 29, city: 'Prague, CZ' },
+                'Europe/Budapest': { x: 54, y: 31, city: 'Budapest, HU' },
+                'Europe/Rome': { x: 52, y: 35, city: 'Rome, IT' },
+                'Europe/Madrid': { x: 47, y: 38, city: 'Madrid, ES' },
+                'Europe/Lisbon': { x: 45, y: 38, city: 'Lisbon, PT' },
+                'Europe/Athens': { x: 55, y: 38, city: 'Athens, GR' },
+                'Europe/Bucharest': { x: 56, y: 33, city: 'Bucharest, RO' },
+                'Europe/Istanbul': { x: 57, y: 36, city: 'Istanbul, TR' },
+                // AMERICAS
+                'America/New_York': { x: 22, y: 38, city: 'New York, US' },
+                'America/Toronto': { x: 21, y: 35, city: 'Toronto, CA' },
+                'America/Chicago': { x: 17, y: 38, city: 'Chicago, US' },
+                'America/Denver': { x: 14, y: 38, city: 'Denver, US' },
+                'America/Los_Angeles': { x: 10, y: 40, city: 'Los Angeles, US' },
+                'America/San_Francisco': { x: 10, y: 38, city: 'San Francisco, US' },
+                'America/Vancouver': { x: 10, y: 34, city: 'Vancouver, CA' },
+                'America/Mexico_City': { x: 15, y: 50, city: 'Mexico City, MX' },
+                'America/Sao_Paulo': { x: 30, y: 66, city: 'São Paulo, BR' },
+                'America/Buenos_Aires': { x: 28, y: 74, city: 'Buenos Aires, AR' },
+                'America/Lima': { x: 23, y: 60, city: 'Lima, PE' },
+                'America/Bogota': { x: 24, y: 55, city: 'Bogotá, CO' },
+                // ASIA
+                'Asia/Tokyo': { x: 85, y: 38, city: 'Tokyo, JP' },
+                'Asia/Seoul': { x: 82, y: 38, city: 'Seoul, KR' },
+                'Asia/Shanghai': { x: 78, y: 40, city: 'Shanghai, CN' },
+                'Asia/Hong_Kong': { x: 77, y: 46, city: 'Hong Kong, HK' },
+                'Asia/Taipei': { x: 79, y: 46, city: 'Taipei, TW' },
+                'Asia/Singapore': { x: 74, y: 56, city: 'Singapore, SG' },
+                'Asia/Bangkok': { x: 73, y: 52, city: 'Bangkok, TH' },
+                'Asia/Ho_Chi_Minh': { x: 75, y: 54, city: 'Ho Chi Minh, VN' },
+                'Asia/Jakarta': { x: 75, y: 60, city: 'Jakarta, ID' },
+                'Asia/Manila': { x: 79, y: 52, city: 'Manila, PH' },
+                'Asia/Kuala_Lumpur': { x: 74, y: 55, city: 'Kuala Lumpur, MY' },
+                'Asia/Kolkata': { x: 68, y: 48, city: 'Mumbai, IN' },
+                'Asia/Dubai': { x: 60, y: 48, city: 'Dubai, AE' },
+                'Asia/Riyadh': { x: 59, y: 50, city: 'Riyadh, SA' },
+                'Asia/Tel_Aviv': { x: 57, y: 42, city: 'Tel Aviv, IL' },
+                'Asia/Jerusalem': { x: 57, y: 42, city: 'Jerusalem, IL' },
+                // OCEANIA
+                'Australia/Sydney': { x: 88, y: 72, city: 'Sydney, AU' },
+                'Australia/Melbourne': { x: 87, y: 74, city: 'Melbourne, AU' },
+                'Australia/Perth': { x: 78, y: 72, city: 'Perth, AU' },
+                'Pacific/Auckland': { x: 93, y: 76, city: 'Auckland, NZ' },
+                // AFRICA
+                'Africa/Cairo': { x: 56, y: 44, city: 'Cairo, EG' },
+                'Africa/Johannesburg': { x: 56, y: 70, city: 'Johannesburg, ZA' },
+                'Africa/Lagos': { x: 51, y: 55, city: 'Lagos, NG' },
+                'Africa/Nairobi': { x: 58, y: 58, city: 'Nairobi, KE' },
+                'Africa/Casablanca': { x: 46, y: 42, city: 'Casablanca, MA' },
+            };
+            
+            // Find exact match first
+            if (tzMap[tz]) {
+                coords = { x: tzMap[tz].x, y: tzMap[tz].y };
+                cityName = tzMap[tz].city;
+            } else {
+                // Partial match fallback
+                for (const [key, val] of Object.entries(tzMap)) {
+                    if (tz.includes(key.split('/')[1])) {
+                        coords = { x: val.x, y: val.y };
+                        cityName = val.city;
+                        break;
+                    }
+                }
+            }
+            
+            console.log('[WAR ROOM] Detected timezone:', tz, '-> Location:', cityName, coords);
             
             // Create MY agent object
             myAgent = {
