@@ -462,7 +462,7 @@
           <div class="section-title">Connected Agents</div>
           <div class="agent-list" id="agentList">
             <div class="empty-state" style="padding: 20px;">
-              No agents online
+              No other agents yet
             </div>
           </div>
         </div>
@@ -654,6 +654,9 @@ const CITIES = {
   'Europe/Amsterdam': { lat: 52.37, lng: 4.90, name: 'Amsterdam' },
   'Europe/Moscow': { lat: 55.75, lng: 37.62, name: 'Moscow' },
   'Europe/Kiev': { lat: 50.45, lng: 30.52, name: 'Kyiv' },
+  'Europe/Kyiv': { lat: 50.45, lng: 30.52, name: 'Kyiv' },
+  'Europe/Minsk': { lat: 53.90, lng: 27.57, name: 'Minsk' },
+  'Europe/Helsinki': { lat: 60.17, lng: 24.94, name: 'Helsinki' },
   'Europe/Rome': { lat: 41.90, lng: 12.50, name: 'Rome' },
   'Europe/Madrid': { lat: 40.42, lng: -3.70, name: 'Madrid' },
   'Europe/Stockholm': { lat: 59.33, lng: 18.07, name: 'Stockholm' },
@@ -788,15 +791,50 @@ function onConnected(wallet) {
   document.getElementById('statusBadge').textContent = 'ONLINE';
   document.getElementById('statusBadge').style.background = 'var(--cyan)';
   
-  // Detect location via timezone
+  // Try browser geolocation first (more accurate)
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        // Got real coords
+        const cityName = getNearestCity(pos.coords.latitude, pos.coords.longitude);
+        setupAgent(wallet, pos.coords.latitude, pos.coords.longitude, cityName);
+      },
+      () => {
+        // Fallback to timezone
+        fallbackToTimezone(wallet);
+      },
+      { timeout: 3000, maximumAge: 300000 }
+    );
+  } else {
+    fallbackToTimezone(wallet);
+  }
+}
+
+function fallbackToTimezone(wallet) {
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const city = CITIES[tz] || { lat: 51.5, lng: 0, name: tz.split('/')[1] || 'Unknown' };
-  
+  setupAgent(wallet, city.lat, city.lng, city.name);
+}
+
+function getNearestCity(lat, lng) {
+  let nearest = 'Unknown';
+  let minDist = Infinity;
+  for (const [tz, city] of Object.entries(CITIES)) {
+    const dist = Math.sqrt(Math.pow(lat - city.lat, 2) + Math.pow(lng - city.lng, 2));
+    if (dist < minDist) {
+      minDist = dist;
+      nearest = city.name;
+    }
+  }
+  return nearest;
+}
+
+function setupAgent(wallet, lat, lng, cityName) {
   myAgent = {
     wallet: wallet,
-    lat: city.lat,
-    lng: city.lng,
-    city: city.name,
+    lat: lat,
+    lng: lng,
+    city: cityName,
     latency: 0,
     bandwidth: 0,
     capLevel: 3,
@@ -810,7 +848,7 @@ function onConnected(wallet) {
   renderAgents();
   renderYourAgent();
   
-  console.log('Connected:', wallet, 'Location:', city.name, `(${city.lat}, ${city.lng})`);
+  console.log('Connected:', wallet, 'Location:', cityName, `(${lat.toFixed(2)}, ${lng.toFixed(2)})`);
 }
 
 async function testNetwork() {
