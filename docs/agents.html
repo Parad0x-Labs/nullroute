@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agents | Phantom Paradox</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23111' width='100' height='100' rx='8'/><text x='50' y='62' font-family='monospace' font-size='24' fill='%2300ff88' text-anchor='middle' font-weight='bold'>402</text></svg>">
+  <!-- D3.js + TopoJSON for real world map -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -431,11 +434,6 @@
             <div class="job-item"><span class="job-name">🎮 GPU</span><span><span class="job-rate">$0.38</span><span class="job-unit">/hr</span></span></div>
             <div class="job-item"><span class="job-name">✓ Verify</span><span><span class="job-rate">$0.019</span><span class="job-unit">/batch</span></span></div>
           </div>
-          <div style="margin-top: 12px; padding: 10px; background: rgba(248, 81, 73, 0.1); border: 1px solid var(--red); border-radius: 4px; font-size: 10px;">
-            <div style="color: var(--red); margin-bottom: 4px; font-weight: bold;">⚠️ QUALITY: 80%+ REQUIRED</div>
-            <div style="color: var(--dim);">Success rate below 80%</div>
-            <div style="color: var(--dim);">= PDOX stake slashed</div>
-          </div>
         </div>
       </div>
     </div>
@@ -590,47 +588,39 @@
   </div>
 
 <script>
-// World map SVG path (simplified continents)
-const WORLD_PATH = `M 165 95 Q 200 85 240 90 Q 280 80 310 95 Q 340 110 320 135 Q 280 150 240 140 Q 200 150 170 130 Q 155 115 165 95 Z
-M 200 200 Q 240 190 270 220 Q 280 270 250 310 Q 210 330 185 290 Q 175 240 200 200 Z
-M 460 75 Q 510 60 560 80 Q 580 120 560 160 Q 520 185 470 165 Q 440 130 460 75 Z
-M 450 190 Q 520 175 580 210 Q 610 280 570 350 Q 500 380 440 330 Q 410 260 450 190 Z
-M 600 50 Q 720 30 830 70 Q 880 140 850 220 Q 780 270 680 230 Q 600 170 600 50 Z
-M 700 250 Q 770 230 830 270 Q 860 340 810 400 Q 740 420 690 370 Q 660 310 700 250 Z
-M 840 350 Q 890 360 920 410 Q 910 460 860 475 Q 810 460 815 410 Q 825 380 840 350 Z`;
-
-// City coordinates (percentage of map)
+// City coordinates with lat/lng for D3 projection
 const CITIES = {
-  'Europe/Vilnius': { x: 55.5, y: 24, name: 'Vilnius' },
-  'Europe/Riga': { x: 55, y: 22, name: 'Riga' },
-  'Europe/Tallinn': { x: 55.5, y: 20, name: 'Tallinn' },
-  'Europe/Warsaw': { x: 54, y: 26, name: 'Warsaw' },
-  'Europe/Berlin': { x: 52, y: 26, name: 'Berlin' },
-  'Europe/Paris': { x: 49, y: 30, name: 'Paris' },
-  'Europe/London': { x: 47, y: 26, name: 'London' },
-  'Europe/Amsterdam': { x: 50, y: 25, name: 'Amsterdam' },
-  'Europe/Moscow': { x: 62, y: 22, name: 'Moscow' },
-  'Europe/Kiev': { x: 58, y: 26, name: 'Kyiv' },
-  'Europe/Rome': { x: 52, y: 34, name: 'Rome' },
-  'Europe/Madrid': { x: 46, y: 36, name: 'Madrid' },
-  'Europe/Stockholm': { x: 52, y: 20, name: 'Stockholm' },
-  'America/New_York': { x: 24, y: 36, name: 'New York' },
-  'America/Los_Angeles': { x: 12, y: 38, name: 'Los Angeles' },
-  'America/Chicago': { x: 18, y: 36, name: 'Chicago' },
-  'America/Toronto': { x: 22, y: 34, name: 'Toronto' },
-  'America/Sao_Paulo': { x: 32, y: 66, name: 'São Paulo' },
-  'Asia/Tokyo': { x: 87, y: 36, name: 'Tokyo' },
-  'Asia/Seoul': { x: 84, y: 36, name: 'Seoul' },
-  'Asia/Shanghai': { x: 80, y: 40, name: 'Shanghai' },
-  'Asia/Singapore': { x: 76, y: 56, name: 'Singapore' },
-  'Asia/Dubai': { x: 62, y: 46, name: 'Dubai' },
-  'Asia/Hong_Kong': { x: 79, y: 46, name: 'Hong Kong' },
-  'Australia/Sydney': { x: 90, y: 74, name: 'Sydney' },
+  'Europe/Vilnius': { lat: 54.68, lng: 25.28, name: 'Vilnius' },
+  'Europe/Riga': { lat: 56.95, lng: 24.10, name: 'Riga' },
+  'Europe/Tallinn': { lat: 59.43, lng: 24.75, name: 'Tallinn' },
+  'Europe/Warsaw': { lat: 52.23, lng: 21.01, name: 'Warsaw' },
+  'Europe/Berlin': { lat: 52.52, lng: 13.40, name: 'Berlin' },
+  'Europe/Paris': { lat: 48.85, lng: 2.35, name: 'Paris' },
+  'Europe/London': { lat: 51.51, lng: -0.12, name: 'London' },
+  'Europe/Amsterdam': { lat: 52.37, lng: 4.90, name: 'Amsterdam' },
+  'Europe/Moscow': { lat: 55.75, lng: 37.62, name: 'Moscow' },
+  'Europe/Kiev': { lat: 50.45, lng: 30.52, name: 'Kyiv' },
+  'Europe/Rome': { lat: 41.90, lng: 12.50, name: 'Rome' },
+  'Europe/Madrid': { lat: 40.42, lng: -3.70, name: 'Madrid' },
+  'Europe/Stockholm': { lat: 59.33, lng: 18.07, name: 'Stockholm' },
+  'America/New_York': { lat: 40.71, lng: -74.01, name: 'New York' },
+  'America/Los_Angeles': { lat: 34.05, lng: -118.24, name: 'Los Angeles' },
+  'America/Chicago': { lat: 41.88, lng: -87.63, name: 'Chicago' },
+  'America/Toronto': { lat: 43.65, lng: -79.38, name: 'Toronto' },
+  'America/Sao_Paulo': { lat: -23.55, lng: -46.63, name: 'São Paulo' },
+  'Asia/Tokyo': { lat: 35.68, lng: 139.69, name: 'Tokyo' },
+  'Asia/Seoul': { lat: 37.57, lng: 126.98, name: 'Seoul' },
+  'Asia/Shanghai': { lat: 31.23, lng: 121.47, name: 'Shanghai' },
+  'Asia/Singapore': { lat: 1.35, lng: 103.82, name: 'Singapore' },
+  'Asia/Dubai': { lat: 25.20, lng: 55.27, name: 'Dubai' },
+  'Asia/Hong_Kong': { lat: 22.32, lng: 114.17, name: 'Hong Kong' },
+  'Australia/Sydney': { lat: -33.87, lng: 151.21, name: 'Sydney' },
 };
 
 let agents = [];
 let myAgent = null;
 let connectedWallet = null;
+let projection = null;
 
 // Initialize
 function init() {
@@ -639,9 +629,48 @@ function init() {
   setupConnect();
 }
 
-function drawMap() {
-  const svg = document.getElementById('mapSvg');
-  svg.innerHTML = `<path d="${WORLD_PATH}" />`;
+async function drawMap() {
+  const container = document.querySelector('.world-map');
+  const svg = d3.select('#mapSvg');
+  const width = container.clientWidth || 800;
+  const height = container.clientHeight || 450;
+  
+  // Clear and set viewBox
+  svg.selectAll('*').remove();
+  svg.attr('viewBox', `0 0 ${width} ${height}`);
+  
+  // Natural Earth projection
+  projection = d3.geoNaturalEarth1()
+    .scale(width / 5.5)
+    .translate([width / 2, height / 2]);
+  
+  const path = d3.geoPath().projection(projection);
+  
+  try {
+    // Load Natural Earth TopoJSON (110m resolution - lightweight)
+    const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    const countries = topojson.feature(world, world.objects.countries);
+    
+    // Draw countries
+    svg.selectAll('path')
+      .data(countries.features)
+      .join('path')
+      .attr('d', path)
+      .attr('fill', '#161a1f')
+      .attr('stroke', '#22272e')
+      .attr('stroke-width', 0.5);
+      
+    console.log('Map loaded: Natural Earth 110m');
+  } catch (err) {
+    console.error('Map load failed, using fallback:', err);
+    // Fallback - simple world outline
+    svg.append('text')
+      .attr('x', width/2)
+      .attr('y', height/2)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#6e7681')
+      .text('Map loading...');
+  }
 }
 
 function setupTabs() {
@@ -694,14 +723,14 @@ function onConnected(wallet) {
   document.getElementById('statusBadge').textContent = 'ONLINE';
   document.getElementById('statusBadge').style.background = 'var(--cyan)';
   
-  // Detect location
+  // Detect location via timezone
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const city = CITIES[tz] || { x: 50, y: 35, name: tz.split('/')[1] || 'Unknown' };
+  const city = CITIES[tz] || { lat: 51.5, lng: 0, name: tz.split('/')[1] || 'Unknown' };
   
   myAgent = {
     wallet: wallet,
-    x: city.x,
-    y: city.y,
+    lat: city.lat,
+    lng: city.lng,
     city: city.name,
     latency: 0,
     bandwidth: 0,
@@ -716,7 +745,7 @@ function onConnected(wallet) {
   renderAgents();
   renderYourAgent();
   
-  console.log('Connected:', wallet, 'Location:', city.name);
+  console.log('Connected:', wallet, 'Location:', city.name, `(${city.lat}, ${city.lng})`);
 }
 
 async function testNetwork() {
@@ -739,24 +768,39 @@ async function testNetwork() {
 
 function renderAgents() {
   const container = document.getElementById('agentMarkers');
+  const mapContainer = document.querySelector('.world-map');
   container.innerHTML = '';
+  
+  if (!projection) return;
+  
+  const width = mapContainer.clientWidth || 800;
+  const height = mapContainer.clientHeight || 450;
   
   // Add my agent
   if (myAgent) {
+    const [px, py] = projection([myAgent.lng, myAgent.lat]);
+    const xPct = (px / width) * 100;
+    const yPct = (py / height) * 100;
+    
     const marker = document.createElement('div');
     marker.className = 'marker you';
-    marker.style.left = myAgent.x + '%';
-    marker.style.top = myAgent.y + '%';
+    marker.style.left = xPct + '%';
+    marker.style.top = yPct + '%';
     marker.title = `YOU - ${myAgent.city}`;
     container.appendChild(marker);
   }
   
   // Add other agents
   agents.forEach(agent => {
+    if (!agent.lat || !agent.lng) return;
+    const [px, py] = projection([agent.lng, agent.lat]);
+    const xPct = (px / width) * 100;
+    const yPct = (py / height) * 100;
+    
     const marker = document.createElement('div');
     marker.className = `marker cap-${agent.capLevel}`;
-    marker.style.left = agent.x + '%';
-    marker.style.top = agent.y + '%';
+    marker.style.left = xPct + '%';
+    marker.style.top = yPct + '%';
     marker.title = `${agent.city} - ${agent.latency}ms`;
     container.appendChild(marker);
   });
