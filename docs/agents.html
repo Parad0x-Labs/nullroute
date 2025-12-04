@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agents | Phantom Paradox</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23111' width='100' height='100' rx='8'/><text x='50' y='62' font-family='monospace' font-size='24' fill='%2300ff88' text-anchor='middle' font-weight='bold'>402</text></svg>">
-  <!-- D3.js + TopoJSON for real world map -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://unpkg.com/topojson-client@3"></script>
+  <!-- Leaflet.js for reliable maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -122,22 +122,44 @@
     }
     .map-stat-value { color: var(--green); font-weight: bold; }
     
-    /* World Map SVG */
+    /* World Map */
     .world-map {
       width: 100%;
       height: calc(100% - 50px);
       position: relative;
       overflow: hidden;
     }
-    #mapSvg {
+    #mapContainer {
       width: 100%;
       height: 100%;
+      background: var(--card-alt);
     }
-    #mapSvg path {
-      fill: var(--card-alt);
-      stroke: var(--border);
-      stroke-width: 0.5;
+    /* Dark theme for Leaflet */
+    .leaflet-container { background: #111418 !important; }
+    .leaflet-tile-pane { filter: grayscale(100%) invert(100%) contrast(0.9) brightness(0.4) sepia(0.1); }
+    .leaflet-control-attribution { display: none; }
+    .leaflet-control-zoom { display: none; }
+    
+    /* Agent Markers on Map */
+    .agent-marker-you .marker-pulse {
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(255,255,255,0.7);
+      animation: pulse 1.5s infinite;
     }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
+      70% { box-shadow: 0 0 0 12px rgba(255,255,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+    }
+    .leaflet-popup-content-wrapper {
+      background: var(--card);
+      color: var(--text);
+      border-radius: 4px;
+    }
+    .leaflet-popup-tip { background: var(--card); }
     
     /* Agent Markers */
     .agent-markers {
@@ -355,6 +377,27 @@
       background: rgba(163, 113, 247, 0.1);
       padding: 4px 8px;
       border-radius: 3px;
+    }
+    
+    /* Download Buttons */
+    .download-btn {
+      display: inline-block;
+      padding: 8px 12px;
+      background: var(--card-alt);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 11px;
+      text-decoration: none;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .download-btn:hover {
+      background: var(--green);
+      border-color: var(--green);
+      color: #000;
+      text-decoration: none;
       display: inline-block;
     }
   </style>
@@ -391,8 +434,7 @@
           </div>
         </div>
         <div class="world-map">
-          <svg id="mapSvg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice"></svg>
-          <div class="agent-markers" id="agentMarkers"></div>
+          <div id="mapContainer"></div>
         </div>
         <div class="map-legend">
           <div class="legend-title">Capability Level</div>
@@ -535,6 +577,9 @@
         <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
           <span class="stat-value green">$0.10-0.30</span><span style="color: var(--dim)">/day max</span>
         </div>
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+          <a href="../apps/mobile/" class="download-btn" style="flex:1;">📲 Install PWA</a>
+        </div>
       </div>
       <div class="job-card">
         <div class="job-card-header">
@@ -546,6 +591,10 @@
         <div style="font-size: 10px; color: var(--dim);">~2-8 GB/day (8hr use)</div>
         <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
           <span class="stat-value green">$0.20-0.80</span><span style="color: var(--dim)">/day max</span>
+        </div>
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+          <a href="../releases/phantom-relay-chrome.zip" class="download-btn">Chrome</a>
+          <a href="../releases/phantom-relay-firefox.xpi" class="download-btn">Firefox</a>
         </div>
       </div>
       <div class="job-card">
@@ -559,6 +608,11 @@
         <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
           <span class="stat-value green">$0.50-2.00</span><span style="color: var(--dim)">/day max</span>
         </div>
+        <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+          <a href="../releases/phantom-agent-win.exe" class="download-btn">⊞ Windows</a>
+          <a href="../releases/phantom-agent-mac.dmg" class="download-btn">⌘ macOS</a>
+          <a href="../releases/phantom-agent-linux.AppImage" class="download-btn">🐧 Linux</a>
+        </div>
       </div>
       <div class="job-card" style="border-color: var(--green);">
         <div class="job-card-header">
@@ -570,6 +624,9 @@
         <div style="font-size: 10px; color: var(--dim);">24/7 uptime = max jobs</div>
         <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
           <span class="stat-value green">$1.50-5.00</span><span style="color: var(--dim)">/day max</span>
+        </div>
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+          <a href="../releases/phantom-box-pi.img.gz" class="download-btn" style="flex:1;">🍓 Raspberry Pi</a>
         </div>
       </div>
     </div>
@@ -620,7 +677,8 @@ const CITIES = {
 let agents = [];
 let myAgent = null;
 let connectedWallet = null;
-let projection = null;
+let map = null;
+let myMarker = null;
 
 // Initialize
 function init() {
@@ -629,48 +687,24 @@ function init() {
   setupConnect();
 }
 
-async function drawMap() {
-  const container = document.querySelector('.world-map');
-  const svg = d3.select('#mapSvg');
-  const width = container.clientWidth || 800;
-  const height = container.clientHeight || 450;
+function drawMap() {
+  // Initialize Leaflet map
+  map = L.map('mapContainer', {
+    center: [30, 0],
+    zoom: 2,
+    minZoom: 1,
+    maxZoom: 6,
+    zoomControl: false,
+    attributionControl: false
+  });
   
-  // Clear and set viewBox
-  svg.selectAll('*').remove();
-  svg.attr('viewBox', `0 0 ${width} ${height}`);
+  // CartoDB Dark tiles (free, no API key)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
   
-  // Natural Earth projection
-  projection = d3.geoNaturalEarth1()
-    .scale(width / 5.5)
-    .translate([width / 2, height / 2]);
-  
-  const path = d3.geoPath().projection(projection);
-  
-  try {
-    // Load Natural Earth TopoJSON (110m resolution - lightweight)
-    const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
-    const countries = topojson.feature(world, world.objects.countries);
-    
-    // Draw countries
-    svg.selectAll('path')
-      .data(countries.features)
-      .join('path')
-      .attr('d', path)
-      .attr('fill', '#161a1f')
-      .attr('stroke', '#22272e')
-      .attr('stroke-width', 0.5);
-      
-    console.log('Map loaded: Natural Earth 110m');
-  } catch (err) {
-    console.error('Map load failed, using fallback:', err);
-    // Fallback - simple world outline
-    svg.append('text')
-      .attr('x', width/2)
-      .attr('y', height/2)
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#6e7681')
-      .text('Map loading...');
-  }
+  console.log('Map loaded: CartoDB Dark');
 }
 
 function setupTabs() {
@@ -685,33 +719,67 @@ function setupTabs() {
 }
 
 function setupConnect() {
-  document.getElementById('connectBtn').addEventListener('click', connectWallet);
+  const btn = document.getElementById('connectBtn');
+  btn.addEventListener('click', connectWallet);
+  
+  // Auto-reconnect if already connected
+  checkExistingConnection();
+}
+
+async function checkExistingConnection() {
+  // Check Phantom
+  if (window.phantom?.solana?.isConnected) {
+    try {
+      const resp = await window.phantom.solana.connect({ onlyIfTrusted: true });
+      if (resp.publicKey) {
+        connectedWallet = resp.publicKey.toString();
+        onConnected(connectedWallet);
+        return;
+      }
+    } catch (e) {}
+  }
+  // Check legacy window.solana
+  if (window.solana?.isConnected && window.solana?.publicKey) {
+    connectedWallet = window.solana.publicKey.toString();
+    onConnected(connectedWallet);
+  }
 }
 
 async function connectWallet() {
   const btn = document.getElementById('connectBtn');
+  btn.textContent = 'CONNECTING...';
+  btn.disabled = true;
   
-  if (window.solana && window.solana.isPhantom) {
-    try {
-      btn.textContent = 'CONNECTING...';
-      const resp = await window.solana.connect();
+  try {
+    // Try Phantom (new API)
+    const provider = window.phantom?.solana || window.solana;
+    
+    if (provider?.isPhantom) {
+      const resp = await provider.connect();
       connectedWallet = resp.publicKey.toString();
       onConnected(connectedWallet);
-    } catch (err) {
-      btn.textContent = 'CONNECT WALLET';
-      console.error('Connection failed:', err);
+      return;
     }
-  } else if (window.solflare) {
-    try {
-      btn.textContent = 'CONNECTING...';
+    
+    // Try Solflare
+    if (window.solflare) {
       await window.solflare.connect();
-      connectedWallet = window.solflare.publicKey.toString();
-      onConnected(connectedWallet);
-    } catch (err) {
-      btn.textContent = 'CONNECT WALLET';
+      if (window.solflare.publicKey) {
+        connectedWallet = window.solflare.publicKey.toString();
+        onConnected(connectedWallet);
+        return;
+      }
     }
-  } else {
-    alert('Install Phantom wallet: phantom.app');
+    
+    // No wallet found
+    btn.textContent = 'CONNECT WALLET';
+    btn.disabled = false;
+    window.open('https://phantom.app/', '_blank');
+    
+  } catch (err) {
+    console.error('Connection failed:', err);
+    btn.textContent = 'CONNECT WALLET';
+    btn.disabled = false;
   }
 }
 
@@ -767,42 +835,47 @@ async function testNetwork() {
 }
 
 function renderAgents() {
-  const container = document.getElementById('agentMarkers');
-  const mapContainer = document.querySelector('.world-map');
-  container.innerHTML = '';
+  if (!map) return;
   
-  if (!projection) return;
+  // Remove existing marker
+  if (myMarker) {
+    map.removeLayer(myMarker);
+    myMarker = null;
+  }
   
-  const width = mapContainer.clientWidth || 800;
-  const height = mapContainer.clientHeight || 450;
-  
-  // Add my agent
-  if (myAgent) {
-    const [px, py] = projection([myAgent.lng, myAgent.lat]);
-    const xPct = (px / width) * 100;
-    const yPct = (py / height) * 100;
+  // Add my agent marker
+  if (myAgent && myAgent.lat && myAgent.lng) {
+    const icon = L.divIcon({
+      className: 'agent-marker-you',
+      html: '<div class="marker-pulse"></div>',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
+    });
     
-    const marker = document.createElement('div');
-    marker.className = 'marker you';
-    marker.style.left = xPct + '%';
-    marker.style.top = yPct + '%';
-    marker.title = `YOU - ${myAgent.city}`;
-    container.appendChild(marker);
+    myMarker = L.marker([myAgent.lat, myAgent.lng], { icon: icon })
+      .addTo(map)
+      .bindPopup(`<b>YOU</b><br>${myAgent.city}<br>${myAgent.latency}ms`);
+    
+    // Center map on user
+    map.setView([myAgent.lat, myAgent.lng], 4);
   }
   
   // Add other agents
   agents.forEach(agent => {
     if (!agent.lat || !agent.lng) return;
-    const [px, py] = projection([agent.lng, agent.lat]);
-    const xPct = (px / width) * 100;
-    const yPct = (py / height) * 100;
+    const capColors = ['#6e7681', '#3fb950', '#39c5cf', '#a371f7', '#d29922'];
+    const color = capColors[agent.capLevel] || '#3fb950';
     
-    const marker = document.createElement('div');
-    marker.className = `marker cap-${agent.capLevel}`;
-    marker.style.left = xPct + '%';
-    marker.style.top = yPct + '%';
-    marker.title = `${agent.city} - ${agent.latency}ms`;
-    container.appendChild(marker);
+    const icon = L.divIcon({
+      className: 'agent-marker',
+      html: `<div style="background:${color};width:8px;height:8px;border-radius:50%;"></div>`,
+      iconSize: [8, 8],
+      iconAnchor: [4, 4]
+    });
+    
+    L.marker([agent.lat, agent.lng], { icon: icon })
+      .addTo(map)
+      .bindPopup(`${agent.city}<br>${agent.latency}ms`);
   });
   
   // Update stats
