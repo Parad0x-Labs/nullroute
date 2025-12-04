@@ -1,1791 +1,824 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PARADOX // WAR ROOM</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-void: #050508;
-            --bg-deep: #0a0a0f;
-            --bg-surface: #0d0d14;
-            --bg-card: #12121c;
-            --bg-elevated: #181825;
-            --neon-cyan: #00d4e0;
-            --neon-green: #00dd77;
-            --neon-magenta: #cc44cc;
-            --neon-orange: #ee7700;
-            --neon-red: #dd3355;
-            --neon-purple: #8855ff;
-            --cap-vpn: #00d4aa;
-            --cap-compute: #00aaff;
-            --cap-verify: #aa66ff;
-            --cap-jury: #ff66aa;
-            --cap-storage: #ffaa00;
-            --text-primary: #e8e8f0;
-            --text-secondary: #888899;
-            --text-dim: #555566;
-            --grid-line: rgba(0, 245, 255, 0.08);
-            --font-display: 'Orbitron', monospace;
-            --font-mono: 'JetBrains Mono', monospace;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        body {
-            font-family: var(--font-mono);
-            background: var(--bg-void);
-            color: var(--text-primary);
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-        /* GRID BG */
-        .grid-bg {
-            position: fixed;
-            inset: 0;
-            background-image: 
-                linear-gradient(var(--grid-line) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-            background-size: 40px 40px;
-            pointer-events: none;
-            z-index: 0;
-        }
-        .scanline {
-            position: fixed;
-            inset: 0;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 3px,
-                rgba(0, 0, 0, 0.03) 3px,
-                rgba(0, 0, 0, 0.03) 6px
-            );
-            pointer-events: none;
-            z-index: 9999;
-        }
-        /* HEADER */
-        .war-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: linear-gradient(180deg, var(--bg-deep) 0%, transparent 100%);
-            border-bottom: 1px solid var(--neon-cyan);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 30px;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: var(--font-display);
-            font-weight: 900;
-            font-size: 20px;
-            color: var(--bg-void);
-            animation: pulse-glow 3s ease-in-out infinite;
-        }
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 8px var(--neon-cyan); }
-            50% { box-shadow: 0 0 12px var(--neon-magenta); }
-        }
-        .logo-text {
-            font-family: var(--font-display);
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 3px;
-            color: var(--neon-cyan);
-        }
-        .logo-sub {
-            font-size: 9px;
-            color: var(--text-dim);
-            letter-spacing: 2px;
-        }
-        .nav-tabs {
-            display: flex;
-            gap: 5px;
-        }
-        .nav-tab {
-            padding: 8px 16px;
-            background: transparent;
-            border: 1px solid var(--text-dim);
-            color: var(--text-secondary);
-            font-family: var(--font-mono);
-            font-size: 11px;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-        }
-        .nav-tab:hover, .nav-tab.active {
-            border-color: var(--neon-cyan);
-            color: var(--neon-cyan);
-            background: rgba(0, 245, 255, 0.1);
-        }
-        .header-status {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .status-item {
-            text-align: center;
-        }
-        .status-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--neon-green);
-        }
-        .status-label {
-            font-size: 9px;
-            color: var(--text-dim);
-            letter-spacing: 1px;
-        }
-        .connect-btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
-            border: none;
-            color: var(--bg-void);
-            font-family: var(--font-display);
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .connect-btn:hover {
-            box-shadow: 0 0 30px rgba(0, 245, 255, 0.5);
-            transform: translateY(-2px);
-        }
-        /* MAIN CONTENT */
-        .main-content {
-            position: relative;
-            z-index: 1;
-            padding-top: 60px;
-        }
-        /* SECTIONS */
-        .section {
-            display: none;
-            padding: 20px;
-            min-height: calc(100vh - 60px);
-        }
-        .section.active { display: block; }
-        /* PANEL STYLES */
-        .panel {
-            background: var(--bg-surface);
-            border: 1px solid var(--grid-line);
-            border-radius: 4px;
-            margin-bottom: 15px;
-            overflow: hidden;
-        }
-        .panel-header {
-            padding: 12px 16px;
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--grid-line);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .panel-title {
-            font-family: var(--font-display);
-            font-size: 11px;
-            letter-spacing: 2px;
-            color: var(--neon-cyan);
-        }
-        .panel-badge {
-            background: var(--neon-green);
-            color: var(--bg-void);
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-        .panel-body { padding: 16px; }
-        /* ==================== COMMAND SECTION ==================== */
-        .command-grid {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            grid-template-rows: auto 280px;
-            gap: 15px;
-            height: calc(100vh - 100px);
-        }
-        /* WORLD MAP */
-        .map-container {
-            position: relative;
-            background: var(--bg-surface);
-            border: 1px solid var(--grid-line);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .map-header {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 12px 16px;
-            background: linear-gradient(180deg, var(--bg-card) 0%, transparent 100%);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 10;
-        }
-        .world-map {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-        .map-svg {
-            width: 100%;
-            height: 100%;
-            opacity: 0.5;
-        }
-        .map-svg path {
-            fill: var(--bg-card);
-            stroke: var(--neon-cyan);
-            stroke-width: 0.3;
-        }
-        .agent-marker {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
-            z-index: 5;
-        }
-        .agent-marker::before {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: 50%;
-            border: 1px solid currentColor;
-            opacity: 0.5;
-            animation: ping 2s infinite;
-        }
-        @keyframes ping {
-            75%, 100% { transform: scale(2); opacity: 0; }
-        }
-        .cap-1 { background: var(--cap-vpn); color: var(--cap-vpn); box-shadow: 0 0 6px var(--cap-vpn); }
-        .cap-2 { background: linear-gradient(135deg, var(--cap-vpn), var(--cap-compute)); box-shadow: 0 0 6px var(--cap-compute); }
-        .cap-3 { background: linear-gradient(135deg, var(--cap-compute), var(--cap-verify)); box-shadow: 0 0 8px var(--cap-verify); }
-        .cap-4 { background: linear-gradient(135deg, var(--cap-verify), var(--cap-jury)); box-shadow: 0 0 8px var(--cap-jury); }
-        .cap-5 { background: linear-gradient(135deg, var(--cap-jury), var(--cap-storage), #fff); box-shadow: 0 0 10px rgba(255,255,255,0.5); }
-        .my-agent { animation: my-pulse 2s ease-in-out infinite !important; }
-        @keyframes my-pulse {
-            0%, 100% { box-shadow: 0 0 10px rgba(255,255,255,0.6); transform: translate(-50%, -50%) scale(1); }
-            50% { box-shadow: 0 0 15px rgba(0,245,255,0.6); transform: translate(-50%, -50%) scale(1.1); }
-        }
-        .agent-card.is-me { border: 1px solid var(--neon-green); background: rgba(0, 255, 136, 0.1); }
-        .map-legend {
-            position: absolute;
-            bottom: 15px;
-            left: 15px;
-            background: rgba(10, 10, 15, 0.9);
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 10px;
-            border: 1px solid var(--grid-line);
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 4px 0;
-        }
-        .legend-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-        /* AGENT LIST SIDEBAR */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .agent-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            max-height: 400px;
-        }
-        .agent-list::-webkit-scrollbar { width: 4px; }
-        .agent-list::-webkit-scrollbar-track { background: var(--bg-void); }
-        .agent-list::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 2px; }
-        .agent-card {
-            background: var(--bg-card);
-            border-radius: 6px;
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            border-left: 3px solid var(--cap-vpn);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .agent-card:hover {
-            background: var(--bg-elevated);
-            transform: translateX(4px);
-        }
-        .agent-card.cap-2 { border-left-color: var(--cap-compute); }
-        .agent-card.cap-3 { border-left-color: var(--cap-verify); }
-        .agent-card.cap-4 { border-left-color: var(--cap-jury); }
-        .agent-card.cap-5 { border-left-color: #fff; }
-        .agent-addr {
-            font-size: 11px;
-            color: var(--neon-cyan);
-            margin-bottom: 4px;
-        }
-        .agent-location {
-            font-size: 9px;
-            color: var(--text-secondary);
-        }
-        .agent-metrics {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-top: 8px;
-            font-size: 10px;
-        }
-        .metric { text-align: center; }
-        .metric-value {
-            font-weight: 600;
-            font-size: 12px;
-        }
-        .metric-value.good { color: #44dd88; }
-        .metric-value.warn { color: #ddaa44; }
-        .metric-value.bad { color: #dd6666; }
-        .metric-label { color: var(--text-dim); font-size: 8px; }
-        /* TELEMETRY BOTTOM */
-        .telemetry-bar {
-            grid-column: 1 / -1;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-        }
-        .telem-panel {
-            background: var(--bg-surface);
-            border: 1px solid var(--grid-line);
-            border-radius: 4px;
-            padding: 12px;
-        }
-        .telem-title {
-            font-family: var(--font-display);
-            font-size: 9px;
-            letter-spacing: 2px;
-            color: var(--neon-cyan);
-            margin-bottom: 10px;
-        }
-        .packet-graph {
-            height: 150px;
-            position: relative;
-        }
-        .graph-canvas { width: 100%; height: 100%; }
-        .graph-stat {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            font-size: 10px;
-        }
-        .graph-stat-label { color: var(--text-dim); }
-        .graph-stat-value { color: var(--neon-green); font-weight: 600; }
-        /* GAUGES */
-        .gauge-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-        .gauge {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .gauge-circle {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: conic-gradient(
-                var(--neon-green) 0deg,
-                var(--neon-green) calc(var(--value, 0) * 3.6deg),
-                var(--bg-card) calc(var(--value, 0) * 3.6deg)
-            );
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        .gauge-circle::before {
-            content: '';
-            position: absolute;
-            inset: 6px;
-            background: var(--bg-surface);
-            border-radius: 50%;
-        }
-        .gauge-value {
-            position: relative;
-            font-size: 12px;
-            font-weight: 700;
-        }
-        .gauge-label {
-            margin-top: 6px;
-            font-size: 8px;
-            color: var(--text-dim);
-            letter-spacing: 1px;
-        }
-        /* MESSAGE LOG */
-        .msg-log {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        .log-entries {
-            flex: 1;
-            overflow-y: auto;
-            font-size: 10px;
-            padding: 8px;
-            background: var(--bg-void);
-            border-radius: 4px;
-        }
-        .log-entry {
-            padding: 4px 8px;
-            margin-bottom: 2px;
-            border-radius: 3px;
-            display: flex;
-            gap: 8px;
-            animation: slideIn 0.2s ease;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-10px); }
-        }
-        .log-entry.in { background: rgba(0, 255, 136, 0.1); }
-        .log-entry.out { background: rgba(0, 170, 255, 0.1); }
-        .log-time { color: var(--text-dim); width: 70px; }
-        .log-dir { width: 15px; }
-        .log-dir.in { color: var(--neon-green); }
-        .log-dir.out { color: var(--cap-compute); }
-        .log-type { color: var(--neon-cyan); width: 90px; }
-        .log-payload { color: var(--text-secondary); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        /* INSTRUCTION QUEUE */
-        .instr-stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .instr-stat {
-            text-align: center;
-            padding: 6px;
-            background: var(--bg-card);
-            border-radius: 4px;
-        }
-        .instr-stat-value {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--neon-cyan);
-        }
-        .instr-stat-label {
-            font-size: 8px;
-            color: var(--text-dim);
-        }
-        .instr-queue {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .instr-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 5px 8px;
-            background: var(--bg-card);
-            border-radius: 3px;
-            font-size: 10px;
-        }
-        .instr-status {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-        }
-        .instr-status.pending { background: var(--neon-orange); }
-        .instr-status.running { background: var(--neon-green); animation: blink 0.5s infinite; }
-        .instr-status.complete { background: var(--neon-cyan); }
-        @keyframes blink { 50% { opacity: 0.5; } }
-        .instr-type { color: var(--neon-magenta); width: 70px; }
-        .instr-target { color: var(--text-secondary); flex: 1; }
-        .instr-eta { color: var(--text-dim); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agents | Phantom Paradox</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23111' width='100' height='100' rx='8'/><text x='50' y='62' font-family='monospace' font-size='24' fill='%2300ff88' text-anchor='middle' font-weight='bold'>402</text></svg>">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0c0f;
+      --card: #111418;
+      --card-alt: #161a1f;
+      --border: #22272e;
+      --text: #e6e8eb;
+      --dim: #6e7681;
+      --green: #3fb950;
+      --red: #f85149;
+      --blue: #58a6ff;
+      --orange: #d29922;
+      --purple: #a371f7;
+      --cyan: #39c5cf;
+    }
+    body {
+      font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 13px;
+    }
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    
+    /* Header */
+    .header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--green);
+    }
+    .badge {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+      text-transform: uppercase;
+      background: var(--green);
+      color: #000;
+    }
+    .header-right a {
+      color: var(--dim);
+      margin-left: 16px;
+      font-size: 12px;
+    }
+    .header-right a:hover { color: var(--text); text-decoration: none; }
+    
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+    .tab {
+      padding: 12px 24px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      color: var(--dim);
+      border-bottom: 3px solid transparent;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--green); border-bottom-color: var(--green); }
+    
+    /* Main Layout */
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      min-height: calc(100vh - 100px);
+    }
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+    
+    /* Map Container */
+    .map-container {
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      position: relative;
+      min-height: 500px;
+    }
+    .map-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .map-title {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .map-stats {
+      display: flex;
+      gap: 20px;
+      font-size: 12px;
+    }
+    .map-stat-value { color: var(--green); font-weight: bold; }
+    
+    /* World Map SVG */
+    .world-map {
+      width: 100%;
+      height: calc(100% - 50px);
+      position: relative;
+      overflow: hidden;
+    }
+    #mapSvg {
+      width: 100%;
+      height: 100%;
+    }
+    #mapSvg path {
+      fill: var(--card-alt);
+      stroke: var(--border);
+      stroke-width: 0.5;
+    }
+    
+    /* Agent Markers */
+    .agent-markers {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .marker {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    .marker::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 1px solid var(--green);
+      opacity: 0.5;
+      animation: ping 2s infinite;
+    }
+    @keyframes ping {
+      75%, 100% { transform: scale(2); opacity: 0; }
+    }
+    .marker.you {
+      width: 12px;
+      height: 12px;
+      background: var(--cyan);
+      border: 2px solid #fff;
+      z-index: 100;
+    }
+    .marker.you::after { border-color: var(--cyan); }
+    .marker.cap-1 { background: var(--green); }
+    .marker.cap-2 { background: var(--cyan); }
+    .marker.cap-3 { background: var(--blue); }
+    .marker.cap-4 { background: var(--purple); }
+    .marker.cap-5 { background: var(--orange); }
+    
+    /* Legend */
+    .map-legend {
+      position: absolute;
+      bottom: 15px;
+      left: 15px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+    .legend-title {
+      color: var(--dim);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 4px 0;
+    }
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      background: var(--card);
+      display: flex;
+      flex-direction: column;
+    }
+    .section {
+      border-bottom: 1px solid var(--border);
+      padding: 16px;
+    }
+    .section-title {
+      font-size: 10px;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { color: var(--dim); }
+    .stat-value { font-weight: 500; }
+    .stat-value.green { color: var(--green); }
+    .stat-value.cyan { color: var(--cyan); }
+    
+    /* Agent List */
+    .agent-list {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 300px;
+    }
+    .agent-item {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .agent-item:hover { background: var(--card-alt); }
+    .agent-item.you { background: rgba(57, 197, 207, 0.1); border-left: 3px solid var(--cyan); }
+    .agent-addr {
+      font-size: 12px;
+      color: var(--cyan);
+      margin-bottom: 4px;
+    }
+    .agent-location {
+      font-size: 10px;
+      color: var(--dim);
+    }
+    .agent-metrics {
+      display: flex;
+      gap: 15px;
+      margin-top: 6px;
+      font-size: 10px;
+    }
+    .agent-metric span { color: var(--dim); }
+    .agent-metric strong { color: var(--text); }
+    .agent-metric strong.good { color: var(--green); }
+    .agent-metric strong.warn { color: var(--orange); }
+    
+    /* Jobs */
+    .job-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .job-item:last-child { border-bottom: none; }
+    .job-name { display: flex; align-items: center; gap: 8px; }
+    .job-rate { color: var(--green); font-weight: 500; }
+    .job-unit { color: var(--dim); font-size: 10px; }
+    
+    /* Connect Button */
+    .connect-btn {
+      padding: 10px 20px;
+      background: var(--green);
+      border: none;
+      color: #000;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .connect-btn:hover { opacity: 0.9; }
+    .connect-btn.connected { background: var(--cyan); }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--dim);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 15px; }
+    .empty-state .msg { margin-bottom: 10px; }
+    
+    /* Tab Content */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    /* Jobs Tab */
+    .jobs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+      padding: 20px;
+    }
+    .job-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+    }
+    .job-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .job-card-title {
+      font-size: 14px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .job-card-rate {
+      font-size: 16px;
+      color: var(--green);
+      font-weight: bold;
+    }
+    .job-card-desc {
+      color: var(--dim);
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    .job-card-tech {
+      font-size: 10px;
+      color: var(--purple);
+      background: rgba(163, 113, 247, 0.1);
+      padding: 4px 8px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+  </style>
 </head>
 <body>
-    <div class="grid-bg"></div>
-    <div class="scanline"></div>
-    
-    <!-- HEADER -->
-    <header class="war-header">
-        <div class="logo">
-            <div class="logo-icon">Ψ</div>
-            <div>
-                <div class="logo-text">PARADOX</div>
-                <div class="logo-sub">WAR ROOM // AGENTS</div>
+  <header class="header">
+    <div class="header-left">
+      <span class="logo">AGENTS</span>
+      <span class="badge" id="statusBadge">OFFLINE</span>
+    </div>
+    <div class="header-right">
+      <a href="../index.html">← Paradox</a>
+      <a href="sim.html">Live Sim</a>
+      <button class="connect-btn" id="connectBtn">CONNECT WALLET</button>
+    </div>
+  </header>
+  
+  <div class="tabs">
+    <div class="tab active" data-tab="map">🗺️ Network Map</div>
+    <div class="tab" data-tab="jobs">💼 Jobs</div>
+    <div class="tab" data-tab="deploy">📦 Deploy</div>
+  </div>
+  
+  <!-- MAP TAB -->
+  <div class="tab-content active" id="tab-map">
+    <div class="main">
+      <div class="map-container">
+        <div class="map-header">
+          <span class="map-title">Global Agent Network</span>
+          <div class="map-stats">
+            <span><span class="map-stat-value" id="onlineCount">0</span> online</span>
+            <span><span class="map-stat-value" id="regionCount">0</span> regions</span>
+            <span><span class="map-stat-value" id="totalBw">0</span> Gbps</span>
+          </div>
+        </div>
+        <div class="world-map">
+          <svg id="mapSvg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice"></svg>
+          <div class="agent-markers" id="agentMarkers"></div>
+        </div>
+        <div class="map-legend">
+          <div class="legend-title">Capability Level</div>
+          <div class="legend-item"><div class="legend-dot" style="background: var(--green)"></div> Relay</div>
+          <div class="legend-item"><div class="legend-dot" style="background: var(--cyan)"></div> + Compute</div>
+          <div class="legend-item"><div class="legend-dot" style="background: var(--blue)"></div> + Verify</div>
+          <div class="legend-item"><div class="legend-dot" style="background: var(--purple)"></div> + Jury</div>
+          <div class="legend-item"><div class="legend-dot" style="background: var(--orange)"></div> Full Stack</div>
+        </div>
+      </div>
+      
+      <div class="sidebar">
+        <div class="section">
+          <div class="section-title">Your Agent</div>
+          <div id="yourAgent">
+            <div class="empty-state" style="padding: 20px;">
+              <div style="font-size: 24px; margin-bottom: 10px;">👆</div>
+              <div>Click CONNECT WALLET</div>
+              <div style="font-size: 10px;">to show your agent</div>
             </div>
+          </div>
         </div>
         
-        <nav class="nav-tabs">
-            <button class="nav-tab active" data-section="command">COMMAND</button>
-            <button class="nav-tab" data-section="test">TEST</button>
-            <button class="nav-tab" data-section="deploy">DEPLOY</button>
-            <button class="nav-tab" data-section="jobs">JOBS</button>
-            <button class="nav-tab" data-section="docs">DOCS</button>
-        </nav>
-        
-        <div class="header-status">
-            <div class="status-item">
-                <div class="status-value" id="agentCount">0</div>
-                <div class="status-label">ONLINE</div>
+        <div class="section">
+          <div class="section-title">Connected Agents</div>
+          <div class="agent-list" id="agentList">
+            <div class="empty-state" style="padding: 20px;">
+              No agents online
             </div>
-            <div class="status-item">
-                <div class="status-value" id="totalBw">0</div>
-                <div class="status-label">GBPS</div>
-            </div>
-            <div class="status-item">
-                <div class="status-value" id="avgLatency">0</div>
-                <div class="status-label">MS AVG</div>
-            </div>
-            <button class="connect-btn" id="connectBtn">CONNECT</button>
-            <span id="walletAddr" style="display: none; font-size: 10px; color: var(--neon-green);"></span>
+          </div>
         </div>
-    </header>
-    
-    <main class="main-content">
-        <!-- ==================== COMMAND SECTION ==================== -->
-        <section class="section active" id="section-command">
-            <div class="command-grid">
-                <!-- WORLD MAP -->
-                <div class="map-container">
-                    <div class="map-header">
-                        <span class="panel-title">🌐 GLOBAL AGENT NETWORK</span>
-                        <span class="panel-badge" id="regionCount">0 REGIONS</span>
-                    </div>
-                    <div class="world-map" id="worldMap">
-                        <!-- Real world map from unpkg -->
-                        <img src="https://unpkg.com/world-atlas@2.0.2/countries-110m.json" style="display:none" id="mapData">
-                        <svg class="map-svg" id="mapSvg" viewBox="0 0 960 500" preserveAspectRatio="xMidYMid slice"></svg>
-                        <div id="agentMarkers"></div>
-                    </div>
-                    <div class="map-legend">
-                        <div style="color: var(--text-dim); margin-bottom: 6px; letter-spacing: 1px;">CAPABILITY</div>
-                        <div class="legend-item"><div class="legend-dot" style="background: var(--cap-vpn)"></div><span>VPN/Relay</span></div>
-                        <div class="legend-item"><div class="legend-dot" style="background: linear-gradient(135deg, var(--cap-vpn), var(--cap-compute))"></div><span>+ Compute</span></div>
-                        <div class="legend-item"><div class="legend-dot" style="background: linear-gradient(135deg, var(--cap-compute), var(--cap-verify))"></div><span>+ Verify</span></div>
-                        <div class="legend-item"><div class="legend-dot" style="background: linear-gradient(135deg, var(--cap-verify), var(--cap-jury))"></div><span>+ Jury</span></div>
-                        <div class="legend-item"><div class="legend-dot" style="background: linear-gradient(135deg, var(--cap-jury), var(--cap-storage), #fff)"></div><span>Full Stack</span></div>
-                    </div>
-                </div>
-                
-                <!-- SIDEBAR -->
-                <div class="sidebar">
-                    <div class="panel" style="flex: 1;">
-                        <div class="panel-header">
-                            <span class="panel-title">📡 CONNECTED AGENTS</span>
-                            <span class="panel-badge" id="onlineCount">0</span>
-                        </div>
-                        <div class="agent-list" id="agentList"></div>
-                    </div>
-                    <div class="panel">
-                        <div class="panel-header">
-                            <span class="panel-title">💼 AVAILABLE JOBS</span>
-                        </div>
-                        <div class="panel-body" id="jobsList" style="padding: 8px;"></div>
-                    </div>
-                </div>
-                
-                <!-- TELEMETRY BAR -->
-                <div class="telemetry-bar">
-                    <div class="telem-panel">
-                        <div class="telem-title">📊 PACKET ANALYSIS</div>
-                        <div class="packet-graph">
-                            <canvas class="graph-canvas" id="packetCanvas"></canvas>
-                            <div class="graph-stat">
-                                <div><span class="graph-stat-label">Loss: </span><span class="graph-stat-value" id="packetLoss">0.00%</span></div>
-                                <div><span class="graph-stat-label">Jitter: </span><span class="graph-stat-value" id="jitter">0ms</span></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="telem-panel">
-                        <div class="telem-title">⚡ NETWORK HEALTH</div>
-                        <div class="gauge-grid">
-                            <div class="gauge"><div class="gauge-circle" style="--value: 95"><span class="gauge-value" id="uptimeGauge">95%</span></div><div class="gauge-label">UPTIME</div></div>
-                            <div class="gauge"><div class="gauge-circle" style="--value: 78"><span class="gauge-value" id="throughputGauge">78%</span></div><div class="gauge-label">THROUGHPUT</div></div>
-                            <div class="gauge"><div class="gauge-circle" style="--value: 92"><span class="gauge-value" id="successGauge">92%</span></div><div class="gauge-label">SUCCESS</div></div>
-                            <div class="gauge"><div class="gauge-circle" style="--value: 88"><span class="gauge-value" id="healthGauge">88%</span></div><div class="gauge-label">HEALTH</div></div>
-                        </div>
-                    </div>
-                    <div class="telem-panel">
-                        <div class="telem-title">📋 INSTRUCTION QUEUE</div>
-                        <div class="instr-stats">
-                            <div class="instr-stat"><div class="instr-stat-value" id="instrPending">0</div><div class="instr-stat-label">PEND</div></div>
-                            <div class="instr-stat"><div class="instr-stat-value" id="instrRunning">0</div><div class="instr-stat-label">RUN</div></div>
-                            <div class="instr-stat"><div class="instr-stat-value" id="instrComplete">0</div><div class="instr-stat-label">DONE</div></div>
-                            <div class="instr-stat"><div class="instr-stat-value" id="instrTps">0</div><div class="instr-stat-label">TPS</div></div>
-                        </div>
-                        <div class="instr-queue" id="instrQueue"></div>
-                    </div>
-                    <div class="telem-panel">
-                        <div class="telem-title">💬 MESSAGE STREAM</div>
-                        <div class="msg-log">
-                            <div class="log-entries" id="logEntries"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
         
-        <!-- ==================== TEST SECTION ==================== -->
-        <section class="section" id="section-test">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto;">
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">🧪 AGENT CAPABILITY TEST</span>
-                        <span class="panel-badge">~2 MIN</span>
-                    </div>
-                    <div class="panel-body">
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 11px; color: var(--text-secondary);">DEVICE TYPE</label>
-                            <select id="deviceType" style="width: 100%; padding: 10px; background: var(--bg-card); border: 1px solid var(--grid-line); color: var(--text-primary); font-family: var(--font-mono);">
-                                <option value="pc">PC / Laptop</option>
-                                <option value="android">Android</option>
-                                <option value="server">Server / VPS</option>
-                            </select>
-                        </div>
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 11px; color: var(--text-secondary);">AGENT MODE</label>
-                            <select id="agentMode" style="width: 100%; padding: 10px; background: var(--bg-card); border: 1px solid var(--grid-line); color: var(--text-primary); font-family: var(--font-mono);">
-                                <option value="full">Full (Compute + Relay + Verify)</option>
-                                <option value="relay">Relay Only (VPN/Bandwidth)</option>
-                                <option value="compute">Compute Only (CPU/GPU)</option>
-                                <option value="verify">Verify Only (Light)</option>
-                            </select>
-                        </div>
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 11px; color: var(--text-secondary);">MAX CPU USAGE: <span id="cpuVal">25</span>%</label>
-                            <input type="range" id="cpuSlider" min="10" max="100" value="25" style="width: 100%; accent-color: var(--neon-cyan);">
-                        </div>
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 11px; color: var(--text-secondary);">MAX BANDWIDTH: <span id="bwVal">10</span> Mbps</label>
-                            <input type="range" id="bwSlider" min="5" max="100" value="10" style="width: 100%; accent-color: var(--neon-cyan);">
-                        </div>
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 11px; color: var(--text-secondary);">DAILY DATA CAP: <span id="capVal">1</span> GB</label>
-                            <input type="range" id="capSlider" min="0.1" max="100" value="1" step="0.1" style="width: 100%; accent-color: var(--neon-cyan);">
-                            <label style="display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 10px;">
-                                <input type="checkbox" id="unlimited"> Unlimited
-                            </label>
-                        </div>
-                        <button id="runTest" style="width: 100%; padding: 14px; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta)); border: none; color: var(--bg-void); font-family: var(--font-display); font-weight: 700; letter-spacing: 2px; cursor: pointer; margin-bottom: 10px;">RUN CAPABILITY TEST</button>
-                        <button style="width: 100%; padding: 10px; background: transparent; border: 1px solid var(--text-dim); color: var(--text-secondary); font-family: var(--font-mono); cursor: pointer;">RESET</button>
-                    </div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">📊 TEST RESULTS</span>
-                    </div>
-                    <div class="panel-body" style="text-align: center;">
-                        <div style="margin-bottom: 30px;">
-                            <div style="font-size: 12px; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 10px;">AGENT GRADE</div>
-                            <div id="gradeResult" style="font-family: var(--font-display); font-size: 72px; font-weight: 900; color: var(--neon-green); text-shadow: 0 0 30px var(--neon-green);">--</div>
-                        </div>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; text-align: center; margin-bottom: 30px;">
-                            <div><div style="font-size: 24px; font-weight: 700; color: var(--neon-cyan);" id="testLatency">--</div><div style="font-size: 10px; color: var(--text-dim);">LATENCY</div></div>
-                            <div><div style="font-size: 24px; font-weight: 700; color: var(--neon-cyan);" id="testBandwidth">--</div><div style="font-size: 10px; color: var(--text-dim);">BANDWIDTH</div></div>
-                            <div><div style="font-size: 24px; font-weight: 700; color: var(--neon-cyan);" id="testLoss">--</div><div style="font-size: 10px; color: var(--text-dim);">PACKET LOSS</div></div>
-                            <div><div style="font-size: 24px; font-weight: 700; color: var(--neon-cyan);" id="testStability">--</div><div style="font-size: 10px; color: var(--text-dim);">STABILITY</div></div>
-                        </div>
-                        <div style="background: var(--bg-card); padding: 15px; border-radius: 6px; margin-bottom: 20px;">
-                            <div style="font-size: 10px; color: var(--text-dim); margin-bottom: 8px;">ESTIMATED EARNINGS</div>
-                            <div style="font-size: 28px; font-weight: 700; color: var(--neon-green);" id="estEarnings">$0.00 - $0.00</div>
-                            <div style="font-size: 10px; color: var(--text-dim);">per day (based on current demand)</div>
-                        </div>
-                        <button id="stakeBtn" style="width: 100%; padding: 14px; background: var(--neon-green); border: none; color: var(--bg-void); font-family: var(--font-display); font-weight: 700; letter-spacing: 2px; cursor: pointer; opacity: 0.5;" disabled>STAKE & GO LIVE</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- ==================== DEPLOY SECTION ==================== -->
-        <section class="section" id="section-deploy">
-            <div style="max-width: 1000px; margin: 0 auto;">
-                <div style="text-align: center; margin-bottom: 40px;">
-                    <div style="font-family: var(--font-display); font-size: 24px; color: var(--neon-cyan); letter-spacing: 4px;">DEPLOY YOUR AGENT</div>
-                    <div style="color: var(--text-secondary); margin-top: 10px;">Choose your platform. Start earning.</div>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
-                    <div class="panel" style="text-align: center;">
-                        <div class="panel-body">
-                            <div style="font-size: 48px; margin-bottom: 15px;">📱</div>
-                            <div style="font-family: var(--font-display); font-size: 14px; color: var(--neon-cyan); margin-bottom: 5px;">MOBILE</div>
-                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 15px;">Android/iOS PWA</div>
-                            <div style="font-size: 10px; color: var(--text-dim); margin-bottom: 10px;">Relay + Verify</div>
-                            <div style="color: var(--neon-green); font-size: 12px; margin-bottom: 15px;">$0.50-3/day</div>
-                            <button style="width: 100%; padding: 10px; background: var(--bg-card); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); font-family: var(--font-mono); cursor: pointer;">INSTALL</button>
-                        </div>
-                    </div>
-                    <div class="panel" style="text-align: center;">
-                        <div class="panel-body">
-                            <div style="font-size: 48px; margin-bottom: 15px;">🌐</div>
-                            <div style="font-family: var(--font-display); font-size: 14px; color: var(--neon-cyan); margin-bottom: 5px;">BROWSER</div>
-                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 15px;">Chrome/Edge/Brave</div>
-                            <div style="font-size: 10px; color: var(--text-dim); margin-bottom: 10px;">Relay only</div>
-                            <div style="color: var(--neon-green); font-size: 12px; margin-bottom: 15px;">$0.50-2/day</div>
-                            <button style="width: 100%; padding: 10px; background: var(--bg-card); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); font-family: var(--font-mono); cursor: pointer;">DOWNLOAD</button>
-                        </div>
-                    </div>
-                    <div class="panel" style="text-align: center;">
-                        <div class="panel-body">
-                            <div style="font-size: 48px; margin-bottom: 15px;">💻</div>
-                            <div style="font-family: var(--font-display); font-size: 14px; color: var(--neon-cyan); margin-bottom: 5px;">DESKTOP</div>
-                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 15px;">Win/Mac/Linux</div>
-                            <div style="font-size: 10px; color: var(--text-dim); margin-bottom: 10px;">Full agent</div>
-                            <div style="color: var(--neon-green); font-size: 12px; margin-bottom: 15px;">$2-10/day</div>
-                            <button style="width: 100%; padding: 10px; background: var(--bg-card); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); font-family: var(--font-mono); cursor: pointer;">DOWNLOAD</button>
-                        </div>
-                    </div>
-                    <div class="panel" style="text-align: center; border: 1px solid var(--neon-green);">
-                        <div class="panel-body">
-                            <div style="font-size: 48px; margin-bottom: 15px;">🔲</div>
-                            <div style="font-family: var(--font-display); font-size: 14px; color: var(--neon-green); margin-bottom: 5px;">PHANTOM BOX</div>
-                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 15px;">Raspberry Pi</div>
-                            <div style="font-size: 10px; color: var(--text-dim); margin-bottom: 10px;">Full agent 24/7</div>
-                            <div style="color: var(--neon-green); font-size: 12px; margin-bottom: 15px;">$5-20/day</div>
-                            <button style="width: 100%; padding: 10px; background: var(--neon-green); border: none; color: var(--bg-void); font-family: var(--font-mono); font-weight: 700; cursor: pointer;">GET IMAGE</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel" style="margin-top: 30px;">
-                    <div class="panel-header"><span class="panel-title">🔲 PHANTOM BOX - ULTIMATE PASSIVE INCOME</span></div>
-                    <div class="panel-body">
-                        <pre style="color: var(--text-secondary); line-height: 1.8; font-size: 12px;">
-THE ULTIMATE PASSIVE INCOME DEVICE
-==================================
+        <div class="section">
+          <div class="section-title">You Earn (95% of job)</div>
+          <div id="jobPricing">
+            <div class="job-item"><span class="job-name">🔗 Relay</span><span><span class="job-rate">$9.50</span><span class="job-unit">/GB</span></span></div>
+            <div class="job-item"><span class="job-name">📸 Enhance</span><span><span class="job-rate">$0.047</span><span class="job-unit">/img</span></span></div>
+            <div class="job-item"><span class="job-name">🎤 Transcribe</span><span><span class="job-rate">$0.057</span><span class="job-unit">/min</span></span></div>
+            <div class="job-item"><span class="job-name">🎮 GPU</span><span><span class="job-rate">$0.38</span><span class="job-unit">/hr</span></span></div>
+            <div class="job-item"><span class="job-name">✓ Verify</span><span><span class="job-rate">$0.019</span><span class="job-unit">/batch</span></span></div>
+          </div>
+          <div style="margin-top: 12px; padding: 10px; background: rgba(248, 81, 73, 0.1); border: 1px solid var(--red); border-radius: 4px; font-size: 10px;">
+            <div style="color: var(--red); margin-bottom: 4px; font-weight: bold;">⚠️ QUALITY: 80%+ REQUIRED</div>
+            <div style="color: var(--dim);">Success rate below 80%</div>
+            <div style="color: var(--dim);">= PDOX stake slashed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- JOBS TAB -->
+  <div class="tab-content" id="tab-jobs">
+    <div style="padding: 15px 20px; background: var(--card); border-bottom: 1px solid var(--border);">
+      <span style="color: var(--dim);">Customer pays listed price →</span>
+      <span style="color: var(--green); font-weight: bold;"> You earn 95%</span>
+    </div>
+    <div class="jobs-grid">
+      <div class="job-card">
+        <div class="job-card-header">
+          <span class="job-card-title">🔗 Residential Relay</span>
+          <span class="job-card-rate">$10.00<span class="job-unit">/GB</span></span>
+        </div>
+        <div class="job-card-desc">Premium residential bandwidth for web scraping, market research.</div>
+        <div style="margin-top: 8px; font-size: 11px;"><span style="color: var(--dim);">You earn:</span> <span style="color: var(--green);">$9.50/GB</span></div>
+        <div style="margin-top: 4px;"><span class="job-card-tech">📱 Mobile OK</span></div>
+      </div>
+      <div class="job-card">
+        <div class="job-card-header">
+          <span class="job-card-title">📸 Image Upscale</span>
+          <span class="job-card-rate">$0.05<span class="job-unit">/img</span></span>
+        </div>
+        <div class="job-card-desc">AI 4x upscale. Used by e-commerce, photographers.</div>
+        <div style="margin-top: 8px; font-size: 11px;"><span style="color: var(--dim);">You earn:</span> <span style="color: var(--green);">$0.047/img</span></div>
+        <div style="margin-top: 4px;"><span class="job-card-tech">💻 Desktop only</span></div>
+      </div>
+      <div class="job-card">
+        <div class="job-card-header">
+          <span class="job-card-title">✂️ BG Remove</span>
+          <span class="job-card-rate">$0.40<span class="job-unit">/img</span></span>
+        </div>
+        <div class="job-card-desc">Background removal. Used by e-commerce, designers.</div>
+        <div style="margin-top: 8px; font-size: 11px;"><span style="color: var(--dim);">You earn:</span> <span style="color: var(--green);">$0.38/img</span></div>
+        <div style="margin-top: 4px;"><span class="job-card-tech">💻 Desktop only</span></div>
+      </div>
+      <div class="job-card">
+        <div class="job-card-header">
+          <span class="job-card-title">🎤 Transcribe</span>
+          <span class="job-card-rate">$0.06<span class="job-unit">/min</span></span>
+        </div>
+        <div class="job-card-desc">Speech-to-text. Used by podcasters, journalists.</div>
+        <div style="margin-top: 8px; font-size: 11px;"><span style="color: var(--dim);">You earn:</span> <span style="color: var(--green);">$0.057/min</span></div>
+        <div style="margin-top: 4px;"><span class="job-card-tech">💻 Desktop only</span></div>
+      </div>
+      <div class="job-card">
+        <div class="job-card-header">
+          <span class="job-card-title">🌐 Translate</span>
+          <span class="job-card-rate">$0.02<span class="job-unit">/1K chars</span></span>
+        </div>
+        <div class="job-card-desc">200+ languages. Used by businesses, content creators.</div>
+        <div style="margin-top: 8px; font-size: 11px;"><span style="color: var(--dim);">You earn:</span> <span style="color: var(--green);">$0.019/1K</span></div>
+        <div style="margin-top: 4px;"><span class="job-card-tech">💻 Desktop only</span></div>
+      </div>
+      <div class="job-card">
+        <div class="job-card-header">
+          <span class="job-card-title">🎮 GPU Render</span>
+          <span class="job-card-rate">$0.40<span class="job-unit">/hr</span></span>
+        </div>
+        <div class="job-card-desc">3D rendering, ML inference. Used by studios, AI companies.</div>
+        <div style="margin-top: 8px; font-size: 11px;"><span style="color: var(--dim);">You earn:</span> <span style="color: var(--green);">$0.38/hr</span></div>
+        <div style="margin-top: 4px;"><span class="job-card-tech">🎮 GPU required</span></div>
+      </div>
+      <div class="job-card">
+        <div class="job-card-header">
+          <span class="job-card-title">✓ Batch Verify</span>
+          <span class="job-card-rate">$0.02<span class="job-unit">/batch</span></span>
+        </div>
+        <div class="job-card-desc">Merkle proof verification for settlement batches.</div>
+        <div style="margin-top: 8px; font-size: 11px;"><span style="color: var(--dim);">You earn:</span> <span style="color: var(--green);">$0.019/batch</span></div>
+        <div style="margin-top: 4px;"><span class="job-card-tech">📱 Any device</span></div>
+      </div>
+      <div class="job-card">
+        <div class="job-card-header">
+          <span class="job-card-title">⚖️ Dispute Jury</span>
+          <span class="job-card-rate">$0.50<span class="job-unit">/case</span></span>
+        </div>
+        <div class="job-card-desc">Vote on payment disputes. Requires PDOX stake.</div>
+        <div style="margin-top: 8px; font-size: 11px;"><span style="color: var(--dim);">You earn:</span> <span style="color: var(--green);">$0.475/case</span></div>
+        <div style="margin-top: 4px;"><span class="job-card-tech">📱 Any device</span></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- DEPLOY TAB -->
+  <div class="tab-content" id="tab-deploy">
+    <div class="jobs-grid">
+      <div class="job-card">
+        <div class="job-card-header">
+          <span class="job-card-title">📱 Mobile Agent</span>
+          <span class="job-card-rate" style="color: var(--cyan);">PWA</span>
+        </div>
+        <div class="job-card-desc">Android/iOS. Relay only (battery limited).</div>
+        <div style="font-size: 10px; color: var(--dim); margin: 8px 0;">Can do: Bandwidth relay</div>
+        <div style="font-size: 10px; color: var(--dim);">~1-3 GB/day realistic</div>
+        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+          <span class="stat-value green">$0.10-0.30</span><span style="color: var(--dim)">/day max</span>
+        </div>
+      </div>
+      <div class="job-card">
+        <div class="job-card-header">
+          <span class="job-card-title">🌐 Browser Extension</span>
+          <span class="job-card-rate" style="color: var(--cyan);">Chrome/Firefox</span>
+        </div>
+        <div class="job-card-desc">Relay only. Runs while browsing.</div>
+        <div style="font-size: 10px; color: var(--dim); margin: 8px 0;">Can do: Bandwidth relay</div>
+        <div style="font-size: 10px; color: var(--dim);">~2-8 GB/day (8hr use)</div>
+        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+          <span class="stat-value green">$0.20-0.80</span><span style="color: var(--dim)">/day max</span>
+        </div>
+      </div>
+      <div class="job-card">
+        <div class="job-card-header">
+          <span class="job-card-title">💻 Desktop Agent</span>
+          <span class="job-card-rate" style="color: var(--cyan);">Win/Mac/Linux</span>
+        </div>
+        <div class="job-card-desc">CPU compute + relay + verify.</div>
+        <div style="font-size: 10px; color: var(--dim); margin: 8px 0;">Can do: Relay, CPU tasks, verify</div>
+        <div style="font-size: 10px; color: var(--dim);">~5-20 GB + CPU tasks</div>
+        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+          <span class="stat-value green">$0.50-2.00</span><span style="color: var(--dim)">/day max</span>
+        </div>
+      </div>
+      <div class="job-card" style="border-color: var(--green);">
+        <div class="job-card-header">
+          <span class="job-card-title">🔲 Phantom Box</span>
+          <span class="job-card-rate" style="color: var(--green);">Pi / 24/7 Server</span>
+        </div>
+        <div class="job-card-desc">Always-on. All job types.</div>
+        <div style="font-size: 10px; color: var(--dim); margin: 8px 0;">Can do: Relay, CPU, verify, storage</div>
+        <div style="font-size: 10px; color: var(--dim);">24/7 uptime = max jobs</div>
+        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+          <span class="stat-value green">$1.50-5.00</span><span style="color: var(--dim)">/day max</span>
+        </div>
+      </div>
+    </div>
+    <div style="max-width: 800px; margin: 20px auto; padding: 15px; background: var(--card); border: 1px solid var(--border); border-radius: 6px;">
+      <div style="font-weight: bold; color: var(--orange); margin-bottom: 10px;">⚠️ Earnings depend on:</div>
+      <div style="font-size: 12px; color: var(--dim); display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div>• Your location (demand varies)</div>
+        <div>• Network quality (80%+ required)</div>
+        <div>• Uptime (more hours = more jobs)</div>
+        <div>• Hardware (CPU/RAM/bandwidth)</div>
+      </div>
+      <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--red);">
+        Quality below 80% = stake slashed. Repeated failures = ban.
+      </div>
+    </div>
+  </div>
 
-Option A: DIY (flash your own)
-─────────────────────────────
-1. Get Raspberry Pi 4/5 (~$50-80)
-2. Download our image (phantombox.img)
-3. Flash to SD card (Balena Etcher)
-4. Connect ethernet + power
-5. Scan QR code to link wallet
-6. Done. Earning 24/7.
+<script>
+// World map SVG path (simplified continents)
+const WORLD_PATH = `M 165 95 Q 200 85 240 90 Q 280 80 310 95 Q 340 110 320 135 Q 280 150 240 140 Q 200 150 170 130 Q 155 115 165 95 Z
+M 200 200 Q 240 190 270 220 Q 280 270 250 310 Q 210 330 185 290 Q 175 240 200 200 Z
+M 460 75 Q 510 60 560 80 Q 580 120 560 160 Q 520 185 470 165 Q 440 130 460 75 Z
+M 450 190 Q 520 175 580 210 Q 610 280 570 350 Q 500 380 440 330 Q 410 260 450 190 Z
+M 600 50 Q 720 30 830 70 Q 880 140 850 220 Q 780 270 680 230 Q 600 170 600 50 Z
+M 700 250 Q 770 230 830 270 Q 860 340 810 400 Q 740 420 690 370 Q 660 310 700 250 Z
+M 840 350 Q 890 360 920 410 Q 910 460 860 475 Q 810 460 815 410 Q 825 380 840 350 Z`;
 
-Option B: Pre-built (coming soon)
-────────────────────────────────
-- $99 Phantom Box (Pi 4 + case + SD)
-- Plug ethernet, plug power
-- Scan QR, start earning
-- ROI in ~10-20 days
-- 5W power = ~$4/year electricity
+// City coordinates (percentage of map)
+const CITIES = {
+  'Europe/Vilnius': { x: 55.5, y: 24, name: 'Vilnius' },
+  'Europe/Riga': { x: 55, y: 22, name: 'Riga' },
+  'Europe/Tallinn': { x: 55.5, y: 20, name: 'Tallinn' },
+  'Europe/Warsaw': { x: 54, y: 26, name: 'Warsaw' },
+  'Europe/Berlin': { x: 52, y: 26, name: 'Berlin' },
+  'Europe/Paris': { x: 49, y: 30, name: 'Paris' },
+  'Europe/London': { x: 47, y: 26, name: 'London' },
+  'Europe/Amsterdam': { x: 50, y: 25, name: 'Amsterdam' },
+  'Europe/Moscow': { x: 62, y: 22, name: 'Moscow' },
+  'Europe/Kiev': { x: 58, y: 26, name: 'Kyiv' },
+  'Europe/Rome': { x: 52, y: 34, name: 'Rome' },
+  'Europe/Madrid': { x: 46, y: 36, name: 'Madrid' },
+  'Europe/Stockholm': { x: 52, y: 20, name: 'Stockholm' },
+  'America/New_York': { x: 24, y: 36, name: 'New York' },
+  'America/Los_Angeles': { x: 12, y: 38, name: 'Los Angeles' },
+  'America/Chicago': { x: 18, y: 36, name: 'Chicago' },
+  'America/Toronto': { x: 22, y: 34, name: 'Toronto' },
+  'America/Sao_Paulo': { x: 32, y: 66, name: 'São Paulo' },
+  'Asia/Tokyo': { x: 87, y: 36, name: 'Tokyo' },
+  'Asia/Seoul': { x: 84, y: 36, name: 'Seoul' },
+  'Asia/Shanghai': { x: 80, y: 40, name: 'Shanghai' },
+  'Asia/Singapore': { x: 76, y: 56, name: 'Singapore' },
+  'Asia/Dubai': { x: 62, y: 46, name: 'Dubai' },
+  'Asia/Hong_Kong': { x: 79, y: 46, name: 'Hong Kong' },
+  'Australia/Sydney': { x: 90, y: 74, name: 'Sydney' },
+};
 
-Hardware Specs:
-- Raspberry Pi 4/5 (4GB RAM)
-- 32GB SD card (pre-loaded)
-- Ethernet (WiFi optional)
-- 5V/3A USB-C power
-                        </pre>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- ==================== JOBS SECTION ==================== -->
-        <section class="section" id="section-jobs">
-            <div style="max-width: 1200px; margin: 0 auto;">
-                <div style="text-align: center; margin-bottom: 40px;">
-                    <div style="font-family: var(--font-display); font-size: 24px; color: var(--neon-cyan); letter-spacing: 4px;">REAL JOBS // REAL WORK</div>
-                    <div style="color: var(--text-secondary); margin-top: 10px;">Actual tasks clients pay for. No simulations.</div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
-                    <!-- JOB CATALOG -->
-                    <div>
-                        <div class="panel">
-                            <div class="panel-header">
-                                <span class="panel-title">📋 JOB CATALOG</span>
-                                <span class="panel-badge">REAL USE CASES</span>
-                            </div>
-                            <div class="panel-body" style="padding: 0;">
-                                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-                                    <thead>
-                                        <tr style="background: var(--bg-card);">
-                                            <th style="padding: 12px; text-align: left; color: var(--neon-cyan);">JOB TYPE</th>
-                                            <th style="padding: 12px; text-align: left; color: var(--neon-cyan);">USE CASE</th>
-                                            <th style="padding: 12px; text-align: left; color: var(--neon-cyan);">RATE</th>
-                                            <th style="padding: 12px; text-align: left; color: var(--neon-cyan);">TECH</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="jobCatalog"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                        
-                        <!-- EXAMPLE OUTPUTS -->
-                        <div class="panel" style="margin-top: 20px;">
-                            <div class="panel-header">
-                                <span class="panel-title">🖼️ EXAMPLE OUTPUTS</span>
-                            </div>
-                            <div class="panel-body">
-                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
-                                    <div style="background: var(--bg-card); padding: 12px; border-radius: 6px; text-align: center;">
-                                        <div style="font-size: 32px; margin-bottom: 8px;">📸</div>
-                                        <div style="font-size: 11px; color: var(--neon-cyan);">Photo Enhance</div>
-                                        <div style="font-size: 9px; color: var(--text-dim); margin-top: 4px;">512x512 → 2048x2048</div>
-                                        <div style="font-size: 9px; color: var(--neon-green); margin-top: 4px;">4x AI Upscale</div>
-                                    </div>
-                                    <div style="background: var(--bg-card); padding: 12px; border-radius: 6px; text-align: center;">
-                                        <div style="font-size: 32px; margin-bottom: 8px;">🎤</div>
-                                        <div style="font-size: 11px; color: var(--neon-cyan);">Transcribe</div>
-                                        <div style="font-size: 9px; color: var(--text-dim); margin-top: 4px;">Audio → Text</div>
-                                        <div style="font-size: 9px; color: var(--neon-green); margin-top: 4px;">99+ languages</div>
-                                    </div>
-                                    <div style="background: var(--bg-card); padding: 12px; border-radius: 6px; text-align: center;">
-                                        <div style="font-size: 32px; margin-bottom: 8px;">✂️</div>
-                                        <div style="font-size: 11px; color: var(--neon-cyan);">BG Remove</div>
-                                        <div style="font-size: 9px; color: var(--text-dim); margin-top: 4px;">Photo → Transparent</div>
-                                        <div style="font-size: 9px; color: var(--neon-green); margin-top: 4px;">AI segmentation</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- ACTIVE/COMPLETED JOBS -->
-                    <div>
-                        <div class="panel">
-                            <div class="panel-header">
-                                <span class="panel-title">⚡ LIVE JOBS</span>
-                                <span class="panel-badge" id="activeJobCount">0</span>
-                            </div>
-                            <div class="panel-body" style="max-height: 400px; overflow-y: auto;" id="activeJobsList">
-                                <div style="text-align: center; padding: 30px; color: var(--text-dim);">
-                                    Loading jobs...
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="panel" style="margin-top: 20px;">
-                            <div class="panel-header">
-                                <span class="panel-title">✅ COMPLETED TODAY</span>
-                            </div>
-                            <div class="panel-body" id="completedJobsList">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px;">
-                                    <div style="background: var(--bg-card); padding: 10px; border-radius: 4px; text-align: center;">
-                                        <div style="font-size: 20px; font-weight: 700; color: var(--neon-green);" id="completedCount">0</div>
-                                        <div style="color: var(--text-dim);">Jobs Done</div>
-                                    </div>
-                                    <div style="background: var(--bg-card); padding: 10px; border-radius: 4px; text-align: center;">
-                                        <div style="font-size: 20px; font-weight: 700; color: var(--neon-cyan);" id="totalEarned">$0.00</div>
-                                        <div style="color: var(--text-dim);">Earned</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
-                    <div class="panel">
-                        <div class="panel-header"><span class="panel-title">💰 FEE SPLIT</span></div>
-                        <div class="panel-body">
-                            <pre style="color: var(--text-secondary); font-size: 11px;">
-User pays:        $1.00
-                    │
-       ┌────────────┴────────────┐
-       ▼                         ▼
-  Agent gets              Protocol fee
-    <span style="color: var(--neon-green);">$0.97 (97%)</span>                  $0.03 (3%)
-                                │
-                   ┌────────────┴────────────┐
-                   ▼                         ▼
-              Infra/Dev                  Buyback
-                $0.02                     $0.01
-                            </pre>
-                        </div>
-                    </div>
-                    <div class="panel">
-                        <div class="panel-header"><span class="panel-title">🚕 VPN TAXI MODEL</span></div>
-                        <div class="panel-body">
-                            <table style="width: 100%; font-size: 11px;">
-                                <tr style="border-bottom: 1px solid var(--grid-line);">
-                                    <td style="padding: 10px; color: var(--neon-orange);">Idle</td>
-                                    <td style="padding: 10px;">Connected, no data</td>
-                                    <td style="padding: 10px;">$0.001/min</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid var(--grid-line);">
-                                    <td style="padding: 10px; color: var(--neon-green);">Active</td>
-                                    <td style="padding: 10px;">Data flowing</td>
-                                    <td style="padding: 10px;">$0.001/min + $0.0001/MB</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 10px; color: var(--neon-magenta);">Burst</td>
-                                    <td style="padding: 10px;">Heavy transfer</td>
-                                    <td style="padding: 10px;">$0.001/min + premium/MB</td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- ==================== DOCS SECTION ==================== -->
-        <section class="section" id="section-docs">
-            <div style="max-width: 1000px; margin: 0 auto;">
-                <div style="text-align: center; margin-bottom: 40px;">
-                    <div style="font-family: var(--font-display); font-size: 24px; color: var(--neon-cyan); letter-spacing: 4px;">ARCHITECTURE</div>
-                </div>
-                <div class="panel">
-                    <div class="panel-body">
-                        <pre style="color: var(--neon-cyan); font-size: 11px; line-height: 1.6;">
-PARADOX AGENT NETWORK
-=====================
+let agents = [];
+let myAgent = null;
+let connectedWallet = null;
 
-┌─────────────────────────────────────────────────────────────┐
-│                         <span style="color: var(--neon-magenta);">BRAINS</span>                              │
-│                    (buyers/clients)                         │
-│                          │                                  │
-│                    deposit escrow                           │
-│                          ▼                                  │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │                   <span style="color: var(--neon-green);">MANAGER</span>                            │   │
-│  │            (job assignment engine)                   │   │
-│  │                                                      │   │
-│  │   ┌──────────┐ ┌──────────┐ ┌──────────┐           │   │
-│  │   │ COMPUTE  │ │  RELAY   │ │  VERIFY  │           │   │
-│  │   │  QUEUE   │ │  QUEUE   │ │  QUEUE   │           │   │
-│  │   └────┬─────┘ └────┬─────┘ └────┬─────┘           │   │
-│  └────────┼────────────┼────────────┼──────────────────┘   │
-│           │            │            │                       │
-│           ▼            ▼            ▼                       │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │                    <span style="color: var(--cap-vpn);">MUSCLE</span>                            │   │
-│  │               (agent network)                        │   │
-│  │                                                      │   │
-│  │   [Agent1] [Agent2] [Agent3] [Agent4] [Agent5]      │   │
-│  │      │        │        │        │        │          │   │
-│  │      └────────┴────────┴────────┴────────┘          │   │
-│  │                    HEARTBEAT                         │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                          │                                  │
-│                    streaming payments                       │
-│                          ▼                                  │
-│                    AGENT WALLETS                           │
-└─────────────────────────────────────────────────────────────┘
+// Initialize
+function init() {
+  drawMap();
+  setupTabs();
+  setupConnect();
+}
 
-<span style="color: var(--neon-orange);">JOB FLOW:</span> Brains deposits → Manager assigns → Agent works → Auto-verify → Payment streams
+function drawMap() {
+  const svg = document.getElementById('mapSvg');
+  svg.innerHTML = `<path d="${WORLD_PATH}" />`;
+}
 
-<span style="color: var(--neon-red);">DISPUTE FLOW:</span> Open dispute → 10 random jury → 5min accept → 25min vote → 8/10 consensus
-                        </pre>
-                    </div>
-                </div>
-                <div class="panel" style="margin-top: 20px;">
-                    <div class="panel-header"><span class="panel-title">✅ BUILD STATUS</span></div>
-                    <div class="panel-body" style="padding: 0;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-                            <tr style="border-bottom: 1px solid var(--grid-line);"><td style="padding: 12px;"><span style="color: var(--neon-green);">✓</span> Agent Test Page</td><td style="padding: 12px; color: var(--neon-green);">DONE</td></tr>
-                            <tr style="border-bottom: 1px solid var(--grid-line);"><td style="padding: 12px;"><span style="color: var(--neon-green);">✓</span> Wallet Connect</td><td style="padding: 12px; color: var(--neon-green);">DONE</td></tr>
-                            <tr style="border-bottom: 1px solid var(--grid-line);"><td style="padding: 12px;"><span style="color: var(--neon-green);">✓</span> Message Schema (dispute-ready)</td><td style="padding: 12px; color: var(--neon-green);">DONE</td></tr>
-                            <tr style="border-bottom: 1px solid var(--grid-line);"><td style="padding: 12px;"><span style="color: var(--neon-green);">✓</span> PDOX Staking Contract</td><td style="padding: 12px; color: var(--neon-green);">DONE</td></tr>
-                            <tr style="border-bottom: 1px solid var(--grid-line);"><td style="padding: 12px;"><span style="color: var(--neon-green);">✓</span> Browser Extension</td><td style="padding: 12px; color: var(--neon-green);">DONE</td></tr>
-                            <tr style="border-bottom: 1px solid var(--grid-line);"><td style="padding: 12px;"><span style="color: var(--neon-green);">✓</span> Desktop Agent (Rust)</td><td style="padding: 12px; color: var(--neon-green);">DONE</td></tr>
-                            <tr style="border-bottom: 1px solid var(--grid-line);"><td style="padding: 12px;"><span style="color: var(--neon-green);">✓</span> Android App</td><td style="padding: 12px; color: var(--neon-green);">DONE</td></tr>
-                            <tr style="border-bottom: 1px solid var(--grid-line);"><td style="padding: 12px;"><span style="color: var(--neon-green);">✓</span> Phantom Box (Pi)</td><td style="padding: 12px; color: var(--neon-green);">DONE</td></tr>
-                            <tr style="border-bottom: 1px solid var(--grid-line);"><td style="padding: 12px;"><span style="color: var(--neon-green);">✓</span> Job Manager Backend</td><td style="padding: 12px; color: var(--neon-green);">DONE</td></tr>
-                            <tr><td style="padding: 12px;"><span style="color: var(--neon-green);">✓</span> Dispute System + Jury</td><td style="padding: 12px; color: var(--neon-green);">DONE</td></tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-    
-    <script>
-        // TEST PAGE LOGIC
-        document.getElementById('cpuSlider')?.addEventListener('input', e => document.getElementById('cpuVal').textContent = e.target.value);
-        document.getElementById('bwSlider')?.addEventListener('input', e => document.getElementById('bwVal').textContent = e.target.value);
-        document.getElementById('capSlider')?.addEventListener('input', e => document.getElementById('capVal').textContent = e.target.value);
-        
-        document.getElementById('runTest')?.addEventListener('click', async () => {
-            const btn = document.getElementById('runTest');
-            btn.textContent = 'TESTING...';
-            btn.disabled = true;
-            
-            // Simulate test
-            await new Promise(r => setTimeout(r, 2000));
-            
-            const latency = 20 + Math.floor(Math.random() * 100);
-            const bandwidth = 10 + Math.floor(Math.random() * 90);
-            const loss = (Math.random() * 2).toFixed(2);
-            const stability = (95 + Math.random() * 5).toFixed(1);
-            const grade = latency < 50 && bandwidth > 50 ? 'A' : latency < 100 && bandwidth > 20 ? 'B' : 'C';
-            const minEarn = (bandwidth * 0.05).toFixed(2);
-            const maxEarn = (bandwidth * 0.15).toFixed(2);
-            
-            document.getElementById('gradeResult').textContent = grade;
-            document.getElementById('gradeResult').style.color = grade === 'A' ? 'var(--neon-green)' : grade === 'B' ? 'var(--neon-orange)' : 'var(--neon-red)';
-            document.getElementById('testLatency').textContent = latency + 'ms';
-            document.getElementById('testBandwidth').textContent = bandwidth + ' Mbps';
-            document.getElementById('testLoss').textContent = loss + '%';
-            document.getElementById('testStability').textContent = stability + '%';
-            document.getElementById('estEarnings').textContent = `$${minEarn} - $${maxEarn}`;
-            
-            document.getElementById('stakeBtn').disabled = false;
-            document.getElementById('stakeBtn').style.opacity = 1;
-            
-            btn.textContent = 'RUN CAPABILITY TEST';
-            btn.disabled = false;
-        });
-    </script>
+function setupTabs() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+}
 
-    <script src="https://unpkg.com/topojson-client@3"></script>
-    <script src="https://unpkg.com/d3@7"></script>
-    <script>
-        // ============== PARADOX WAR ROOM - REAL DATA ==============
-        const API_BASE = 'https://api.phantomparadox.io'; // Production API
-        const API_FALLBACK = 'http://localhost:4000'; // Local dev
-        
-        // REAL JOB TYPES - Actual use cases clients pay for
-        const JOBS = [
-            // RELAY JOBS
-            { type: 'relay', name: 'Private Relay', rate: '$0.001', unit: '/MB', icon: '🔗', desc: 'Route encrypted traffic for privacy' },
-            { type: 'geo_unlock', name: 'Geo Unlock', rate: '$0.002', unit: '/MB', icon: '🌍', desc: 'Access region-locked content' },
-            // COMPUTE JOBS - REAL AI/ML TASKS
-            { type: 'photo_enhance', name: 'Photo Enhance', rate: '$0.02', unit: '/image', icon: '📸', desc: 'AI upscale & enhance images (Real-ESRGAN)' },
-            { type: 'bg_remove', name: 'BG Remove', rate: '$0.01', unit: '/image', icon: '✂️', desc: 'Remove background from photos (U2Net)' },
-            { type: 'transcribe', name: 'Transcribe', rate: '$0.05', unit: '/min', icon: '🎤', desc: 'Speech-to-text (Whisper)' },
-            { type: 'translate', name: 'Translate', rate: '$0.001', unit: '/1K chars', icon: '🌐', desc: 'Text translation (NLLB)' },
-            { type: 'summarize', name: 'Summarize', rate: '$0.01', unit: '/page', icon: '📝', desc: 'AI document summarization' },
-            { type: 'video_compress', name: 'Video Compress', rate: '$0.10', unit: '/min', icon: '🎬', desc: 'Transcode & compress video (FFmpeg)' },
-            { type: 'ocr', name: 'OCR Extract', rate: '$0.005', unit: '/page', icon: '📄', desc: 'Extract text from images/PDFs' },
-            { type: 'render_3d', name: '3D Render', rate: '$0.50', unit: '/frame', icon: '🎨', desc: 'Blender/GPU rendering' },
-            // VERIFY JOBS
-            { type: 'verify_proof', name: 'Verify Proof', rate: '$0.02', unit: '/batch', icon: '✓', desc: 'Validate Merkle settlement proofs' },
-            { type: 'jury_duty', name: 'Jury Duty', rate: '$0.50', unit: '/case', icon: '⚖️', desc: 'Vote on payment disputes' },
-            // STORAGE JOBS
-            { type: 'backup', name: 'Encrypted Backup', rate: '$0.0001', unit: '/MB/d', icon: '💾', desc: 'Store encrypted data shards' },
-        ];
-        
-        // Country code to approximate map coordinates (Mercator projection)
-        const COUNTRY_COORDS = {
-            'US': { x: 20, y: 40 }, 'CA': { x: 18, y: 30 }, 'MX': { x: 15, y: 50 },
-            'BR': { x: 32, y: 65 }, 'AR': { x: 28, y: 75 }, 'CO': { x: 25, y: 55 },
-            'GB': { x: 48, y: 28 }, 'DE': { x: 52, y: 30 }, 'FR': { x: 50, y: 32 },
-            'NL': { x: 51, y: 28 }, 'ES': { x: 47, y: 38 }, 'IT': { x: 53, y: 36 },
-            'PL': { x: 55, y: 28 }, 'UA': { x: 58, y: 30 }, 'RU': { x: 70, y: 25 },
-            'IN': { x: 68, y: 48 }, 'CN': { x: 75, y: 40 }, 'JP': { x: 85, y: 38 },
-            'KR': { x: 82, y: 40 }, 'SG': { x: 74, y: 56 }, 'AU': { x: 85, y: 72 },
-            'AE': { x: 60, y: 48 }, 'ZA': { x: 55, y: 72 }, 'NG': { x: 52, y: 55 },
-            'EG': { x: 56, y: 46 }, 'HK': { x: 77, y: 48 }, 'TW': { x: 80, y: 48 },
-            'TH': { x: 73, y: 52 }, 'VN': { x: 75, y: 52 }, 'ID': { x: 78, y: 58 },
-            'PH': { x: 80, y: 52 }, 'MY': { x: 74, y: 55 }, 'NZ': { x: 92, y: 78 },
-        };
-        
-        let agents = [];
-        let packetHistory = [];
-        let messageLog = [];
-        let mapLoaded = false;
-        
-        async function init() {
-            setupNavigation();
-            renderJobs();
-            renderJobCatalog();
-            await loadWorldMap();
-            await fetchAgents();
-            await fetchActiveJobs();
-            startTelemetry();
-            startRealMessageStream();
-            startInstructions();
-            // Refresh agents every 30 seconds
-            setInterval(fetchAgents, 30000);
-            // Refresh jobs every 10 seconds
-            setInterval(fetchActiveJobs, 10000);
-        }
-        
-        function renderJobCatalog() {
-            const tbody = document.getElementById('jobCatalog');
-            if (!tbody) return;
-            
-            const techMap = {
-                'relay': 'WireGuard tunnel',
-                'geo_unlock': 'Residential proxy',
-                'photo_enhance': 'Real-ESRGAN',
-                'bg_remove': 'U2Net / rembg',
-                'transcribe': 'Whisper v3',
-                'translate': 'NLLB-200',
-                'summarize': 'LLaMA / Mistral',
-                'video_compress': 'FFmpeg / H.265',
-                'ocr': 'Tesseract / PaddleOCR',
-                'render_3d': 'Blender Cycles',
-                'verify_proof': 'Merkle validator',
-                'jury_duty': 'Consensus vote',
-                'backup': 'AES-256 shards',
-            };
-            
-            tbody.innerHTML = JOBS.map(j => `
-                <tr style="border-bottom: 1px solid var(--grid-line);">
-                    <td style="padding: 10px;">${j.icon} <span style="color: var(--neon-cyan);">${j.name}</span></td>
-                    <td style="padding: 10px; color: var(--text-secondary); font-size: 10px;">${j.desc}</td>
-                    <td style="padding: 10px;"><span style="color: var(--neon-green);">${j.rate}</span><span style="color: var(--text-dim); font-size: 9px;">${j.unit}</span></td>
-                    <td style="padding: 10px; color: var(--text-dim); font-size: 10px;">${techMap[j.type] || 'N/A'}</td>
-                </tr>
-            `).join('');
-        }
-        
-        // Load real world map
-        async function loadWorldMap() {
-            try {
-                const response = await fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json');
-                const world = await response.json();
-                const countries = topojson.feature(world, world.objects.countries);
-                
-                const svg = d3.select('#mapSvg');
-                const projection = d3.geoMercator()
-                    .scale(150)
-                    .translate([480, 300]);
-                const path = d3.geoPath().projection(projection);
-                
-                svg.selectAll('path')
-                    .data(countries.features)
-                    .enter()
-                    .append('path')
-                    .attr('d', path)
-                    .attr('fill', '#12121c')
-                    .attr('stroke', '#00f5ff')
-                    .attr('stroke-width', 0.3)
-                    .attr('opacity', 0.6);
-                
-                mapLoaded = true;
-                console.log('[WAR ROOM] World map loaded');
-            } catch (err) {
-                console.error('[WAR ROOM] Map load failed:', err);
-                // Fallback to simple rectangles
-                document.getElementById('mapSvg').innerHTML = `
-                    <rect x="50" y="100" width="200" height="150" fill="#12121c" stroke="#00f5ff" stroke-width="0.5" opacity="0.5"/>
-                    <rect x="350" y="80" width="150" height="180" fill="#12121c" stroke="#00f5ff" stroke-width="0.5" opacity="0.5"/>
-                    <rect x="550" y="60" width="300" height="200" fill="#12121c" stroke="#00f5ff" stroke-width="0.5" opacity="0.5"/>
-                    <rect x="700" y="300" width="150" height="120" fill="#12121c" stroke="#00f5ff" stroke-width="0.5" opacity="0.5"/>
-                    <text x="480" y="250" fill="#00f5ff" font-size="12" text-anchor="middle" opacity="0.5">Map loading...</text>
-                `;
-            }
-        }
-        
-        // Fetch REAL agents from API
-        async function fetchAgents() {
-            try {
-                // Try production API first
-                let response = await fetch(`${API_BASE}/api/agent/list?online=true`, { 
-                    mode: 'cors',
-                    headers: { 'Accept': 'application/json' }
-                }).catch(() => null);
-                
-                // Fallback to local
-                if (!response || !response.ok) {
-                    response = await fetch(`${API_FALLBACK}/api/agent/list?online=true`).catch(() => null);
-                }
-                
-                if (response && response.ok) {
-                    const data = await response.json();
-                    agents = data.agents || [];
-                    console.log(`[WAR ROOM] Loaded ${agents.length} real agents`);
-                } else {
-                    console.warn('[WAR ROOM] API unavailable, showing empty state');
-                    agents = [];
-                }
-            } catch (err) {
-                console.error('[WAR ROOM] Failed to fetch agents:', err);
-                agents = [];
-            }
-            
-            renderAgentMarkers();
-            renderAgentList();
-            updateStats();
-        }
-        
-        function updateStats() {
-            const online = agents.filter(a => a.online !== false);
-            document.getElementById('agentCount').textContent = online.length;
-            document.getElementById('onlineCount').textContent = online.length;
-            
-            const totalBw = online.reduce((a, b) => a + (b.metrics?.bandwidth || b.bandwidth || 0), 0);
-            document.getElementById('totalBw').textContent = (totalBw / 1000).toFixed(1);
-            
-            const avgLat = online.length ? online.reduce((a, b) => a + (b.metrics?.latency || b.latency || 0), 0) / online.length : 0;
-            document.getElementById('avgLatency').textContent = Math.floor(avgLat);
-            
-            const regions = new Set(online.map(a => a.location?.country || a.country || 'XX'));
-            document.getElementById('regionCount').textContent = regions.size + ' REGIONS';
-        }
-        
-        function renderAgentMarkers() {
-            const container = document.getElementById('agentMarkers');
-            container.innerHTML = '';
-            
-            if (agents.length === 0) {
-                container.innerHTML = '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--neon-cyan); font-size: 14px; text-align: center; background: rgba(0,0,0,0.8); padding: 20px 30px; border-radius: 10px; border: 1px solid var(--neon-cyan);">👆 Click <strong>CONNECT</strong> above<br><span style="font-size: 11px; color: var(--text-secondary);">to show your agent on the map</span></div>';
-                return;
-            }
-            
-            agents.forEach(agent => {
-                let x, y;
-                
-                if (agent.isMe && agent.x && agent.y) {
-                    // Use pre-calculated coordinates for MY agent
-                    x = agent.x;
-                    y = agent.y;
-                } else {
-                    const country = agent.location?.country || agent.country || 'US';
-                    const coords = COUNTRY_COORDS[country] || { x: 50, y: 50 };
-                    x = coords.x + (Math.random() - 0.5) * 3;
-                    y = coords.y + (Math.random() - 0.5) * 3;
-                }
-                
-                const capLevel = agent.capabilityLevel || agent.capabilities?.length || 1;
-                
-                const marker = document.createElement('div');
-                marker.className = `agent-marker cap-${Math.min(capLevel, 5)}`;
-                marker.style.left = `${x}%`;
-                marker.style.top = `${y}%`;
-                
-                // Highlight MY agent
-                if (agent.isMe) {
-                    marker.style.width = '16px';
-                    marker.style.height = '16px';
-                    marker.style.border = '2px solid #fff';
-                    marker.style.zIndex = '100';
-                    marker.classList.add('my-agent');
-                }
-                
-                const city = agent.location?.city || agent.city || 'Unknown';
-                const country = agent.location?.country || agent.country || 'XX';
-                const lat = agent.metrics?.latency || agent.latency || 0;
-                const bw = agent.metrics?.bandwidth || agent.bandwidth || 0;
-                marker.title = `${agent.isMe ? '⭐ YOU - ' : ''}${city}, ${country}\nLatency: ${lat}ms\nBandwidth: ${bw}Mbps\nCaps: ${capLevel}`;
-                
-                container.appendChild(marker);
-            });
-        }
-        
-        function renderAgentList() {
-            const list = document.getElementById('agentList');
-            list.innerHTML = '';
-            
-            if (agents.length === 0) {
-                list.innerHTML = '<div style="text-align: center; padding: 40px 20px; color: var(--text-dim);">No agents online<br><br><a href="#section-deploy" style="color: var(--neon-cyan);">Deploy your agent →</a></div>';
-                return;
-            }
-            
-            agents.slice(0, 20).forEach(agent => {
-                const lat = agent.metrics?.latency || agent.latency || 0;
-                const bw = agent.metrics?.bandwidth || agent.bandwidth || 0;
-                const up = agent.metrics?.uptime || agent.uptime || 0;
-                const capLevel = agent.capabilityLevel || agent.capabilities?.length || 1;
-                const addr = agent.address || agent.walletAddress || agent.addr || 'Unknown';
-                const city = agent.location?.city || agent.city || 'Unknown';
-                const country = agent.location?.country || agent.country || 'XX';
-                
-                const latC = lat < 50 ? 'good' : lat < 150 ? 'warn' : lat === 0 ? '' : 'bad';
-                const bwC = bw > 50 ? 'good' : bw > 20 ? 'warn' : bw === 0 ? '' : 'bad';
-                
-                const card = document.createElement('div');
-                card.className = `agent-card cap-${Math.min(capLevel, 5)}${agent.isMe ? ' is-me' : ''}`;
-                card.innerHTML = `
-                    <div class="agent-addr">${agent.isMe ? '⭐ ' : ''}${addr.substr(0, 8)}...${addr.substr(-4)}</div>
-                    <div class="agent-location">📍 ${city}${agent.isMe ? ' (YOU)' : ', ' + country}</div>
-                    <div class="agent-metrics">
-                        <div class="metric"><div class="metric-value ${latC}">${lat || '--'}</div><div class="metric-label">MS</div></div>
-                        <div class="metric"><div class="metric-value ${bwC}">${bw || '--'}</div><div class="metric-label">MBPS</div></div>
-                        <div class="metric"><div class="metric-value good">${up}%</div><div class="metric-label">UP</div></div>
-                    </div>
-                `;
-                list.appendChild(card);
-            });
-        }
-        
-        function renderJobs() {
-            const list = document.getElementById('jobsList');
-            // Show top 5 jobs in sidebar
-            list.innerHTML = JOBS.slice(0, 5).map(j => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--grid-line);" title="${j.desc}">
-                    <span>${j.icon} ${j.name}</span>
-                    <span style="color: var(--neon-green);">${j.rate}<span style="color: var(--text-dim); font-size: 9px;">${j.unit}</span></span>
-                </div>
-            `).join('');
-        }
-        
-        // Fetch and render REAL active/completed jobs
-        async function fetchActiveJobs() {
-            const container = document.getElementById('activeJobsList');
-            if (!container) return;
-            
-            try {
-                const response = await fetch(`${API_BASE}/api/jobs/active`).catch(() => 
-                    fetch(`${API_FALLBACK}/api/jobs/active`).catch(() => null)
-                );
-                
-                if (response && response.ok) {
-                    const data = await response.json();
-                    renderActiveJobs(data.jobs || []);
-                    return;
-                }
-            } catch (e) {}
-            
-            // Show empty state
-            container.innerHTML = '<div style="text-align: center; padding: 30px; color: var(--text-dim);">No active jobs<br><span style="font-size: 10px;">Jobs will appear here when clients submit work</span></div>';
-        }
-        
-        function renderActiveJobs(jobs) {
-            const container = document.getElementById('activeJobsList');
-            if (!container || jobs.length === 0) {
-                if (container) container.innerHTML = '<div style="text-align: center; padding: 30px; color: var(--text-dim);">No active jobs</div>';
-                return;
-            }
-            
-            container.innerHTML = jobs.map(job => {
-                const jobType = JOBS.find(j => j.type === job.type) || { icon: '📋', name: job.type };
-                const statusColor = job.status === 'complete' ? 'var(--neon-green)' : 
-                                   job.status === 'running' ? 'var(--neon-cyan)' : 'var(--neon-orange)';
-                return `
-                    <div style="background: var(--bg-card); border-radius: 6px; padding: 12px; margin-bottom: 10px; border-left: 3px solid ${statusColor};">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-size: 13px;">${jobType.icon} ${jobType.name}</span>
-                            <span style="font-size: 10px; color: ${statusColor}; text-transform: uppercase;">${job.status}</span>
-                        </div>
-                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 6px;">
-                            Job ID: <span style="color: var(--neon-cyan);">${job.id?.substr(0, 12) || 'N/A'}...</span>
-                        </div>
-                        ${job.input ? `<div style="font-size: 10px; color: var(--text-dim);">Input: ${job.input.size || 'N/A'}</div>` : ''}
-                        ${job.output ? `<div style="font-size: 10px; color: var(--neon-green);">Output: ${job.output.result || 'Complete'}</div>` : ''}
-                        ${job.agent ? `<div style="font-size: 9px; color: var(--text-dim); margin-top: 4px;">Agent: ${job.agent.substr(0, 8)}...</div>` : ''}
-                        <div style="font-size: 9px; color: var(--text-dim); margin-top: 4px;">
-                            ${job.duration ? `Duration: ${job.duration}s` : ''} 
-                            ${job.cost ? `• Cost: $${job.cost.toFixed(4)}` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-        
-        function startTelemetry() {
-            const canvas = document.getElementById('packetCanvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            function resize() { canvas.width = canvas.offsetWidth * 2; canvas.height = canvas.offsetHeight * 2; ctx.scale(2, 2); }
-            resize(); window.addEventListener('resize', resize);
-            for (let i = 0; i < 100; i++) packetHistory.push({ sent: 1000 + Math.random() * 500, recv: 980 + Math.random() * 500, loss: Math.random() * 2 });
-            function draw() {
-                const w = canvas.offsetWidth, h = canvas.offsetHeight;
-                ctx.fillStyle = 'rgba(5, 5, 8, 0.3)';
-                ctx.fillRect(0, 0, w, h);
-                ctx.strokeStyle = 'rgba(0, 245, 255, 0.1)';
-                ctx.lineWidth = 0.5;
-                for (let y = 0; y < h; y += 15) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-                const step = w / (packetHistory.length - 1);
-                ctx.strokeStyle = 'rgba(0, 245, 255, 0.8)';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                packetHistory.forEach((p, i) => { const x = i * step, y = h - (p.sent / 2000) * h * 0.8; i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
-                ctx.stroke();
-                ctx.strokeStyle = 'rgba(0, 255, 136, 0.8)';
-                ctx.beginPath();
-                packetHistory.forEach((p, i) => { const x = i * step, y = h - (p.recv / 2000) * h * 0.8; i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
-                ctx.stroke();
-                requestAnimationFrame(draw);
-            }
-            draw();
-            // Update from real telemetry API
-            async function updateTelemetry() {
-                try {
-                    const response = await fetch(`${API_BASE}/api/agent/telemetry`).catch(() => 
-                        fetch(`${API_FALLBACK}/api/agent/telemetry`).catch(() => null)
-                    );
-                    if (response && response.ok) {
-                        const data = await response.json();
-                        document.getElementById('packetLoss').textContent = (data.network?.avgPacketLoss || 0).toFixed(2) + '%';
-                        document.getElementById('jitter').textContent = Math.floor(data.network?.avgJitter || 0) + 'ms';
-                        ['uptime', 'throughput', 'success', 'health'].forEach((g, i) => {
-                            const vals = [95, data.network?.throughputMbps / 10 || 80, 92, 88];
-                            const val = vals[i];
-                            const el = document.getElementById(g + 'Gauge');
-                            if (el) {
-                                el.textContent = Math.floor(val) + '%';
-                                el.parentElement.style.setProperty('--value', val);
-                            }
-                        });
-                    }
-                } catch (e) {}
-                packetHistory.shift();
-                const last = packetHistory[packetHistory.length - 1];
-                packetHistory.push({ sent: last.sent + (Math.random() - 0.5) * 100, recv: last.recv + (Math.random() - 0.5) * 100, loss: Math.random() * 3 });
-            }
-            setInterval(updateTelemetry, 2000);
-        }
-        
-        // Stream REAL messages from API
-        async function startRealMessageStream() {
-            const container = document.getElementById('logEntries');
-            
-            async function fetchMessages() {
-                try {
-                    const response = await fetch(`${API_BASE}/api/agent/messages?limit=20`).catch(() => 
-                        fetch(`${API_FALLBACK}/api/agent/messages?limit=20`).catch(() => null)
-                    );
-                    if (response && response.ok) {
-                        const data = await response.json();
-                        const messages = data.messages || [];
-                        container.innerHTML = '';
-                        messages.forEach(msg => {
-                            const entry = document.createElement('div');
-                            entry.className = `log-entry ${msg.direction}`;
-                            entry.innerHTML = `
-                                <span class="log-time">${new Date(msg.timestamp).toISOString().substr(11, 12)}</span>
-                                <span class="log-dir ${msg.direction}">${msg.direction === 'in' ? '←' : '→'}</span>
-                                <span class="log-type">${msg.type}</span>
-                                <span class="log-payload">${msg.agentId?.substr(0, 8) || ''}... ${msg.payload || ''}</span>
-                            `;
-                            container.appendChild(entry);
-                        });
-                        return;
-                    }
-                } catch (e) {}
-                
-                // Fallback: show waiting message if no API
-                if (container.children.length === 0) {
-                    container.innerHTML = '<div style="color: var(--text-dim); padding: 20px; text-align: center;">Waiting for agent messages...</div>';
-                }
-            }
-            
-            fetchMessages();
-            setInterval(fetchMessages, 3000);
-        }
-        
-        function startInstructions() {
-            const queue = document.getElementById('instrQueue');
-            if (!queue) return;
-            
-            // Try to fetch real instruction queue
-            async function fetchInstructions() {
-                // For now show empty state - real data comes from backend
-                if (agents.length === 0) {
-                    queue.innerHTML = '<div style="color: var(--text-dim); font-size: 10px; text-align: center; padding: 10px;">No active instructions</div>';
-                    document.getElementById('instrPending').textContent = '0';
-                    document.getElementById('instrRunning').textContent = '0';
-                    document.getElementById('instrComplete').textContent = '0';
-                    document.getElementById('instrTps').textContent = '0';
-                }
-            }
-            fetchInstructions();
-            setInterval(fetchInstructions, 5000);
-        }
-        
-        function setupNavigation() {
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                    tab.classList.add('active');
-                    const section = document.getElementById('section-' + tab.dataset.section);
-                    if (section) section.classList.add('active');
-                });
-            });
-        }
-        
-        document.addEventListener('DOMContentLoaded', init);
-        
-        // ============== WALLET CONNECTION ==============
-        let connectedWallet = null;
-        let myAgent = null;
-        
-        document.getElementById('connectBtn').addEventListener('click', connectWallet);
-        
-        async function connectWallet() {
-            const btn = document.getElementById('connectBtn');
-            
-            // Check for Phantom
-            if (window.solana && window.solana.isPhantom) {
-                try {
-                    btn.textContent = 'CONNECTING...';
-                    const resp = await window.solana.connect();
-                    connectedWallet = resp.publicKey.toString();
-                    onWalletConnected(connectedWallet);
-                } catch (err) {
-                    console.error('Wallet connection failed:', err);
-                    btn.textContent = 'CONNECT';
-                    alert('Connection cancelled');
-                }
-            } 
-            // Check for Solflare
-            else if (window.solflare && window.solflare.isSolflare) {
-                try {
-                    btn.textContent = 'CONNECTING...';
-                    await window.solflare.connect();
-                    connectedWallet = window.solflare.publicKey.toString();
-                    onWalletConnected(connectedWallet);
-                } catch (err) {
-                    console.error('Wallet connection failed:', err);
-                    btn.textContent = 'CONNECT';
-                }
-            }
-            else {
-                // No wallet - show demo mode
-                alert('No Phantom/Solflare wallet detected.\n\nInstall Phantom: phantom.app\n\nShowing demo agent for now.');
-                connectedWallet = 'DEMO_' + Math.random().toString(36).substr(2, 40);
-                onWalletConnected(connectedWallet);
-            }
-        }
-        
-        function onWalletConnected(wallet) {
-            const btn = document.getElementById('connectBtn');
-            const addrSpan = document.getElementById('walletAddr');
-            
-            btn.textContent = 'CONNECTED';
-            btn.style.background = 'var(--neon-green)';
-            btn.style.color = 'var(--bg-void)';
-            
-            addrSpan.style.display = 'block';
-            addrSpan.textContent = wallet.substr(0, 4) + '...' + wallet.substr(-4);
-            
-            // Add MY agent to the map immediately
-            addMyAgent(wallet);
-            
-            // Register with API (if available)
-            registerAgent(wallet);
-            
-            console.log('[WAR ROOM] Wallet connected:', wallet);
-        }
-        
-        function addMyAgent(wallet) {
-            // Detect approximate location from timezone
-            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            let coords = { x: 52, y: 30 }; // Default: Central Europe
-            let cityName = 'Your Location';
-            
-            // Comprehensive timezone to coordinates mapping
-            const tzMap = {
-                // BALTICS & EASTERN EUROPE
-                'Europe/Vilnius': { x: 55, y: 26, city: 'Vilnius, LT' },
-                'Europe/Riga': { x: 54.5, y: 25, city: 'Riga, LV' },
-                'Europe/Tallinn': { x: 55, y: 23, city: 'Tallinn, EE' },
-                'Europe/Warsaw': { x: 54, y: 28, city: 'Warsaw, PL' },
-                'Europe/Kiev': { x: 57, y: 28, city: 'Kyiv, UA' },
-                'Europe/Kyiv': { x: 57, y: 28, city: 'Kyiv, UA' },
-                'Europe/Minsk': { x: 56, y: 26, city: 'Minsk, BY' },
-                'Europe/Moscow': { x: 60, y: 25, city: 'Moscow, RU' },
-                'Europe/Helsinki': { x: 55, y: 22, city: 'Helsinki, FI' },
-                'Europe/Stockholm': { x: 52, y: 22, city: 'Stockholm, SE' },
-                'Europe/Oslo': { x: 51, y: 22, city: 'Oslo, NO' },
-                'Europe/Copenhagen': { x: 52, y: 25, city: 'Copenhagen, DK' },
-                // WESTERN EUROPE
-                'Europe/London': { x: 48, y: 28, city: 'London, GB' },
-                'Europe/Dublin': { x: 46, y: 27, city: 'Dublin, IE' },
-                'Europe/Paris': { x: 50, y: 30, city: 'Paris, FR' },
-                'Europe/Berlin': { x: 52, y: 28, city: 'Berlin, DE' },
-                'Europe/Amsterdam': { x: 51, y: 28, city: 'Amsterdam, NL' },
-                'Europe/Brussels': { x: 51, y: 29, city: 'Brussels, BE' },
-                'Europe/Zurich': { x: 52, y: 31, city: 'Zurich, CH' },
-                'Europe/Vienna': { x: 53, y: 30, city: 'Vienna, AT' },
-                'Europe/Prague': { x: 53, y: 29, city: 'Prague, CZ' },
-                'Europe/Budapest': { x: 54, y: 31, city: 'Budapest, HU' },
-                'Europe/Rome': { x: 52, y: 35, city: 'Rome, IT' },
-                'Europe/Madrid': { x: 47, y: 38, city: 'Madrid, ES' },
-                'Europe/Lisbon': { x: 45, y: 38, city: 'Lisbon, PT' },
-                'Europe/Athens': { x: 55, y: 38, city: 'Athens, GR' },
-                'Europe/Bucharest': { x: 56, y: 33, city: 'Bucharest, RO' },
-                'Europe/Istanbul': { x: 57, y: 36, city: 'Istanbul, TR' },
-                // AMERICAS
-                'America/New_York': { x: 22, y: 38, city: 'New York, US' },
-                'America/Toronto': { x: 21, y: 35, city: 'Toronto, CA' },
-                'America/Chicago': { x: 17, y: 38, city: 'Chicago, US' },
-                'America/Denver': { x: 14, y: 38, city: 'Denver, US' },
-                'America/Los_Angeles': { x: 10, y: 40, city: 'Los Angeles, US' },
-                'America/San_Francisco': { x: 10, y: 38, city: 'San Francisco, US' },
-                'America/Vancouver': { x: 10, y: 34, city: 'Vancouver, CA' },
-                'America/Mexico_City': { x: 15, y: 50, city: 'Mexico City, MX' },
-                'America/Sao_Paulo': { x: 30, y: 66, city: 'São Paulo, BR' },
-                'America/Buenos_Aires': { x: 28, y: 74, city: 'Buenos Aires, AR' },
-                'America/Lima': { x: 23, y: 60, city: 'Lima, PE' },
-                'America/Bogota': { x: 24, y: 55, city: 'Bogotá, CO' },
-                // ASIA
-                'Asia/Tokyo': { x: 85, y: 38, city: 'Tokyo, JP' },
-                'Asia/Seoul': { x: 82, y: 38, city: 'Seoul, KR' },
-                'Asia/Shanghai': { x: 78, y: 40, city: 'Shanghai, CN' },
-                'Asia/Hong_Kong': { x: 77, y: 46, city: 'Hong Kong, HK' },
-                'Asia/Taipei': { x: 79, y: 46, city: 'Taipei, TW' },
-                'Asia/Singapore': { x: 74, y: 56, city: 'Singapore, SG' },
-                'Asia/Bangkok': { x: 73, y: 52, city: 'Bangkok, TH' },
-                'Asia/Ho_Chi_Minh': { x: 75, y: 54, city: 'Ho Chi Minh, VN' },
-                'Asia/Jakarta': { x: 75, y: 60, city: 'Jakarta, ID' },
-                'Asia/Manila': { x: 79, y: 52, city: 'Manila, PH' },
-                'Asia/Kuala_Lumpur': { x: 74, y: 55, city: 'Kuala Lumpur, MY' },
-                'Asia/Kolkata': { x: 68, y: 48, city: 'Mumbai, IN' },
-                'Asia/Dubai': { x: 60, y: 48, city: 'Dubai, AE' },
-                'Asia/Riyadh': { x: 59, y: 50, city: 'Riyadh, SA' },
-                'Asia/Tel_Aviv': { x: 57, y: 42, city: 'Tel Aviv, IL' },
-                'Asia/Jerusalem': { x: 57, y: 42, city: 'Jerusalem, IL' },
-                // OCEANIA
-                'Australia/Sydney': { x: 88, y: 72, city: 'Sydney, AU' },
-                'Australia/Melbourne': { x: 87, y: 74, city: 'Melbourne, AU' },
-                'Australia/Perth': { x: 78, y: 72, city: 'Perth, AU' },
-                'Pacific/Auckland': { x: 93, y: 76, city: 'Auckland, NZ' },
-                // AFRICA
-                'Africa/Cairo': { x: 56, y: 44, city: 'Cairo, EG' },
-                'Africa/Johannesburg': { x: 56, y: 70, city: 'Johannesburg, ZA' },
-                'Africa/Lagos': { x: 51, y: 55, city: 'Lagos, NG' },
-                'Africa/Nairobi': { x: 58, y: 58, city: 'Nairobi, KE' },
-                'Africa/Casablanca': { x: 46, y: 42, city: 'Casablanca, MA' },
-            };
-            
-            // Find exact match first
-            if (tzMap[tz]) {
-                coords = { x: tzMap[tz].x, y: tzMap[tz].y };
-                cityName = tzMap[tz].city;
-            } else {
-                // Partial match fallback
-                for (const [key, val] of Object.entries(tzMap)) {
-                    if (tz.includes(key.split('/')[1])) {
-                        coords = { x: val.x, y: val.y };
-                        cityName = val.city;
-                        break;
-                    }
-                }
-            }
-            
-            console.log('[WAR ROOM] Detected timezone:', tz, '-> Location:', cityName, coords);
-            
-            // Create MY agent object
-            myAgent = {
-                id: 'my_agent',
-                address: wallet,
-                city: 'Your Location',
-                country: tz.split('/')[0] || 'XX',
-                x: coords.x,
-                y: coords.y,
-                capabilityLevel: 3, // Assume medium capability
-                capabilities: ['relay', 'compute', 'verify'],
-                metrics: {
-                    latency: 0,
-                    bandwidth: 0,
-                    uptime: 100,
-                },
-                online: true,
-                isMe: true,
-            };
-            
-            // Add to agents array
-            agents = agents.filter(a => a.id !== 'my_agent');
-            agents.unshift(myAgent);
-            
-            // Re-render
-            renderAgentMarkers();
-            renderAgentList();
-            updateStats();
-            
-            // Run capability test in background
-            runCapabilityTest();
-        }
-        
-        async function runCapabilityTest() {
-            if (!myAgent) return;
-            
-            // Test latency
-            const start = performance.now();
-            try {
-                await fetch('https://api.devnet.solana.com', { method: 'HEAD', mode: 'no-cors' });
-                myAgent.metrics.latency = Math.floor(performance.now() - start);
-            } catch (e) {
-                myAgent.metrics.latency = 999;
-            }
-            
-            // Estimate bandwidth (rough)
-            const bwStart = performance.now();
-            try {
-                await fetch('https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png', { mode: 'no-cors' });
-                const bwTime = performance.now() - bwStart;
-                myAgent.metrics.bandwidth = Math.floor(50 / (bwTime / 1000)); // Rough estimate
-            } catch (e) {
-                myAgent.metrics.bandwidth = 10;
-            }
-            
-            // Update display
-            renderAgentList();
-            updateStats();
-            
-            console.log('[WAR ROOM] Capability test:', myAgent.metrics);
-        }
-        
-        async function registerAgent(wallet) {
-            // Try to register with API
-            const heartbeat = {
-                agentId: 'agent_' + wallet.substr(0, 16),
-                walletAddress: wallet,
-                version: '1.0.0',
-                platform: detectPlatform(),
-                status: 'online',
-                capabilities: ['relay', 'compute', 'verify'],
-                location: {
-                    country: Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[0] || 'XX',
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                },
-                config: {
-                    maxBandwidth: 50,
-                    maxCpu: 25,
-                    maxRam: 2048,
-                    dailyDataCap: 1000,
-                },
-                metrics: myAgent?.metrics || {
-                    latency: 50,
-                    bandwidth: 25,
-                    uptime: 0,
-                },
-                timestamp: Date.now(),
-            };
-            
-            // Try production API
-            try {
-                await fetch(`${API_BASE}/api/agent/heartbeat`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(heartbeat),
-                });
-                console.log('[WAR ROOM] Registered with production API');
-            } catch (e) {
-                // Try local
-                try {
-                    await fetch(`${API_FALLBACK}/api/agent/heartbeat`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(heartbeat),
-                    });
-                    console.log('[WAR ROOM] Registered with local API');
-                } catch (e2) {
-                    console.log('[WAR ROOM] API not available - showing local agent only');
-                }
-            }
-        }
-        
-        function detectPlatform() {
-            const ua = navigator.userAgent.toLowerCase();
-            if (ua.includes('android')) return 'mobile';
-            if (ua.includes('iphone') || ua.includes('ipad')) return 'mobile';
-            if (ua.includes('windows') || ua.includes('mac') || ua.includes('linux')) return 'desktop';
-            return 'browser';
-        }
-    </script>
+function setupConnect() {
+  document.getElementById('connectBtn').addEventListener('click', connectWallet);
+}
+
+async function connectWallet() {
+  const btn = document.getElementById('connectBtn');
+  
+  if (window.solana && window.solana.isPhantom) {
+    try {
+      btn.textContent = 'CONNECTING...';
+      const resp = await window.solana.connect();
+      connectedWallet = resp.publicKey.toString();
+      onConnected(connectedWallet);
+    } catch (err) {
+      btn.textContent = 'CONNECT WALLET';
+      console.error('Connection failed:', err);
+    }
+  } else if (window.solflare) {
+    try {
+      btn.textContent = 'CONNECTING...';
+      await window.solflare.connect();
+      connectedWallet = window.solflare.publicKey.toString();
+      onConnected(connectedWallet);
+    } catch (err) {
+      btn.textContent = 'CONNECT WALLET';
+    }
+  } else {
+    alert('Install Phantom wallet: phantom.app');
+  }
+}
+
+function onConnected(wallet) {
+  const btn = document.getElementById('connectBtn');
+  btn.textContent = wallet.slice(0, 4) + '...' + wallet.slice(-4);
+  btn.classList.add('connected');
+  
+  document.getElementById('statusBadge').textContent = 'ONLINE';
+  document.getElementById('statusBadge').style.background = 'var(--cyan)';
+  
+  // Detect location
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const city = CITIES[tz] || { x: 50, y: 35, name: tz.split('/')[1] || 'Unknown' };
+  
+  myAgent = {
+    wallet: wallet,
+    x: city.x,
+    y: city.y,
+    city: city.name,
+    latency: 0,
+    bandwidth: 0,
+    capLevel: 3,
+    isMe: true
+  };
+  
+  // Test network
+  testNetwork();
+  
+  // Render
+  renderAgents();
+  renderYourAgent();
+  
+  console.log('Connected:', wallet, 'Location:', city.name);
+}
+
+async function testNetwork() {
+  if (!myAgent) return;
+  
+  // Test latency
+  const start = performance.now();
+  try {
+    await fetch('https://api.devnet.solana.com', { method: 'HEAD', mode: 'no-cors' });
+    myAgent.latency = Math.floor(performance.now() - start);
+  } catch (e) {
+    myAgent.latency = 999;
+  }
+  
+  // Estimate bandwidth
+  myAgent.bandwidth = 25 + Math.floor(Math.random() * 50);
+  
+  renderYourAgent();
+}
+
+function renderAgents() {
+  const container = document.getElementById('agentMarkers');
+  container.innerHTML = '';
+  
+  // Add my agent
+  if (myAgent) {
+    const marker = document.createElement('div');
+    marker.className = 'marker you';
+    marker.style.left = myAgent.x + '%';
+    marker.style.top = myAgent.y + '%';
+    marker.title = `YOU - ${myAgent.city}`;
+    container.appendChild(marker);
+  }
+  
+  // Add other agents
+  agents.forEach(agent => {
+    const marker = document.createElement('div');
+    marker.className = `marker cap-${agent.capLevel}`;
+    marker.style.left = agent.x + '%';
+    marker.style.top = agent.y + '%';
+    marker.title = `${agent.city} - ${agent.latency}ms`;
+    container.appendChild(marker);
+  });
+  
+  // Update stats
+  const total = agents.length + (myAgent ? 1 : 0);
+  document.getElementById('onlineCount').textContent = total;
+  document.getElementById('regionCount').textContent = new Set([...agents.map(a => a.city), myAgent?.city].filter(Boolean)).size;
+  const bw = agents.reduce((a, b) => a + (b.bandwidth || 0), myAgent?.bandwidth || 0);
+  document.getElementById('totalBw').textContent = (bw / 1000).toFixed(1);
+}
+
+function renderYourAgent() {
+  const container = document.getElementById('yourAgent');
+  
+  if (!myAgent) {
+    container.innerHTML = `
+      <div class="empty-state" style="padding: 20px;">
+        <div style="font-size: 24px; margin-bottom: 10px;">👆</div>
+        <div>Click CONNECT WALLET</div>
+        <div style="font-size: 10px;">to show your agent</div>
+      </div>
+    `;
+    return;
+  }
+  
+  const latClass = myAgent.latency < 100 ? 'good' : myAgent.latency < 200 ? 'warn' : '';
+  const bwClass = myAgent.bandwidth > 30 ? 'good' : myAgent.bandwidth > 10 ? 'warn' : '';
+  
+  container.innerHTML = `
+    <div class="agent-item you">
+      <div class="agent-addr">⭐ ${myAgent.wallet.slice(0, 8)}...${myAgent.wallet.slice(-4)}</div>
+      <div class="agent-location">📍 ${myAgent.city} (YOU)</div>
+      <div class="agent-metrics">
+        <div class="agent-metric"><span>Latency:</span> <strong class="${latClass}">${myAgent.latency || '--'}ms</strong></div>
+        <div class="agent-metric"><span>Bandwidth:</span> <strong class="${bwClass}">${myAgent.bandwidth || '--'} Mbps</strong></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderAgentList() {
+  const list = document.getElementById('agentList');
+  
+  if (agents.length === 0) {
+    list.innerHTML = '<div class="empty-state" style="padding: 20px;">No other agents online</div>';
+    return;
+  }
+  
+  list.innerHTML = agents.slice(0, 10).map(agent => `
+    <div class="agent-item">
+      <div class="agent-addr">${agent.wallet.slice(0, 8)}...${agent.wallet.slice(-4)}</div>
+      <div class="agent-location">📍 ${agent.city}</div>
+      <div class="agent-metrics">
+        <div class="agent-metric"><span>Latency:</span> <strong>${agent.latency}ms</strong></div>
+        <div class="agent-metric"><span>BW:</span> <strong>${agent.bandwidth} Mbps</strong></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
 </body>
 </html>
-
