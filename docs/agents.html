@@ -96,6 +96,21 @@
       .main { grid-template-columns: 1fr; }
       .sidebar { display: none; }
     }
+    @media (max-width: 600px) {
+      .header { padding: 10px 12px; flex-wrap: wrap; gap: 8px; }
+      .header-right { display: none; }
+      .tabs { overflow-x: auto; }
+      .tab { padding: 10px 14px; font-size: 11px; white-space: nowrap; }
+      .map-container { min-height: 300px; }
+      .map-header { flex-wrap: wrap; gap: 8px; padding: 10px; }
+      .map-stats { font-size: 10px; gap: 10px; }
+      .map-legend { padding: 8px; }
+      .legend-item { font-size: 9px; }
+      .jobs-grid { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
+      .job-card { padding: 14px; }
+      .job-card-header { flex-wrap: wrap; gap: 6px; }
+      .download-btn { padding: 10px 8px; font-size: 10px; }
+    }
     
     /* Map Container */
     .map-container {
@@ -398,7 +413,16 @@
       border-color: var(--green);
       color: #000;
       text-decoration: none;
-      display: inline-block;
+    }
+    .download-btn.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: var(--card);
+    }
+    .download-btn.disabled:hover {
+      background: var(--card);
+      border-color: var(--border);
+      color: var(--dim);
     }
   </style>
 </head>
@@ -585,8 +609,8 @@
         <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
           <span class="stat-value green">$0.10-0.30</span><span style="color: var(--dim)">/day max</span>
         </div>
-        <div style="margin-top: 12px; display: flex; gap: 8px;">
-          <a href="https://github.com/PhantomGrid-Wraight/PhantomGrid-Wraith-Testnet/releases" class="download-btn" style="flex:1;">📥 APK Download</a>
+        <div style="margin-top: 12px;">
+          <span class="download-btn disabled">📥 APK - Devnet Soon</span>
         </div>
       </div>
       
@@ -603,8 +627,8 @@
           <span class="stat-value green">$0.20-0.80</span><span style="color: var(--dim)">/day max</span>
         </div>
         <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
-          <a href="https://github.com/PhantomGrid-Wraight/PhantomGrid-Wraith-Testnet/releases" class="download-btn">🔵 Chrome</a>
-          <a href="https://github.com/PhantomGrid-Wraight/PhantomGrid-Wraith-Testnet/releases" class="download-btn">🦊 Firefox</a>
+          <span class="download-btn disabled">🔵 Chrome - Soon</span>
+          <span class="download-btn disabled">🦊 Firefox - Soon</span>
         </div>
       </div>
       
@@ -621,9 +645,9 @@
           <span class="stat-value green">$0.50-2.00</span><span style="color: var(--dim)">/day max</span>
         </div>
         <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
-          <a href="https://github.com/PhantomGrid-Wraight/PhantomGrid-Wraith-Testnet/releases" class="download-btn">⊞ Windows</a>
-          <a href="https://github.com/PhantomGrid-Wraight/PhantomGrid-Wraith-Testnet/releases" class="download-btn">🍎 macOS</a>
-          <a href="https://github.com/PhantomGrid-Wraight/PhantomGrid-Wraith-Testnet/releases" class="download-btn">🐧 Linux</a>
+          <span class="download-btn disabled">⊞ Win - Soon</span>
+          <span class="download-btn disabled">🍎 Mac - Soon</span>
+          <span class="download-btn disabled">🐧 Linux - Soon</span>
         </div>
       </div>
       
@@ -639,8 +663,8 @@
         <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
           <span class="stat-value green">$1.50-5.00</span><span style="color: var(--dim)">/day max</span>
         </div>
-        <div style="margin-top: 12px; display: flex; gap: 8px;">
-          <a href="https://github.com/PhantomGrid-Wraight/PhantomGrid-Wraith-Testnet/releases" class="download-btn" style="flex:1;">🍓 Pi Image</a>
+        <div style="margin-top: 12px;">
+          <span class="download-btn disabled">🍓 Pi Image - Soon</span>
         </div>
       </div>
     </div>
@@ -715,10 +739,10 @@ function drawMap() {
     attributionControl: false
   });
   
-  // CartoDB Dark tiles (free, no API key)
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-    subdomains: 'abcd',
-    maxZoom: 19
+  // Stadia Alidade Smooth Dark (high quality, free)
+  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+    maxZoom: 20,
+    attribution: ''
   }).addTo(map);
   
   console.log('Map loaded: CartoDB Dark');
