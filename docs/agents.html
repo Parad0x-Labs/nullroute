@@ -287,6 +287,12 @@
         .cap-3 { background: linear-gradient(135deg, var(--cap-compute), var(--cap-verify)); box-shadow: 0 0 15px var(--cap-verify); }
         .cap-4 { background: linear-gradient(135deg, var(--cap-verify), var(--cap-jury)); box-shadow: 0 0 18px var(--cap-jury); }
         .cap-5 { background: linear-gradient(135deg, var(--cap-jury), var(--cap-storage), #fff); box-shadow: 0 0 20px #fff; }
+        .my-agent { animation: my-pulse 1s ease-in-out infinite !important; }
+        @keyframes my-pulse {
+            0%, 100% { box-shadow: 0 0 20px #fff, 0 0 40px var(--neon-cyan); transform: translate(-50%, -50%) scale(1); }
+            50% { box-shadow: 0 0 30px #fff, 0 0 60px var(--neon-magenta); transform: translate(-50%, -50%) scale(1.2); }
+        }
+        .agent-card.is-me { border: 1px solid var(--neon-green); background: rgba(0, 255, 136, 0.1); }
         .map-legend {
             position: absolute;
             bottom: 15px;
@@ -560,6 +566,7 @@
                 <div class="status-label">MS AVG</div>
             </div>
             <button class="connect-btn" id="connectBtn">CONNECT</button>
+            <span id="walletAddr" style="display: none; font-size: 10px; color: var(--neon-green);"></span>
         </div>
     </header>
     
@@ -1239,11 +1246,18 @@ PARADOX AGENT NETWORK
             }
             
             agents.forEach(agent => {
-                const country = agent.location?.country || agent.country || 'US';
-                const coords = COUNTRY_COORDS[country] || { x: 50, y: 50 };
-                // Add slight randomness to prevent overlap
-                const x = coords.x + (Math.random() - 0.5) * 3;
-                const y = coords.y + (Math.random() - 0.5) * 3;
+                let x, y;
+                
+                if (agent.isMe && agent.x && agent.y) {
+                    // Use pre-calculated coordinates for MY agent
+                    x = agent.x;
+                    y = agent.y;
+                } else {
+                    const country = agent.location?.country || agent.country || 'US';
+                    const coords = COUNTRY_COORDS[country] || { x: 50, y: 50 };
+                    x = coords.x + (Math.random() - 0.5) * 3;
+                    y = coords.y + (Math.random() - 0.5) * 3;
+                }
                 
                 const capLevel = agent.capabilityLevel || agent.capabilities?.length || 1;
                 
@@ -1252,10 +1266,20 @@ PARADOX AGENT NETWORK
                 marker.style.left = `${x}%`;
                 marker.style.top = `${y}%`;
                 
+                // Highlight MY agent
+                if (agent.isMe) {
+                    marker.style.width = '16px';
+                    marker.style.height = '16px';
+                    marker.style.border = '2px solid #fff';
+                    marker.style.zIndex = '100';
+                    marker.classList.add('my-agent');
+                }
+                
                 const city = agent.location?.city || agent.city || 'Unknown';
+                const country = agent.location?.country || agent.country || 'XX';
                 const lat = agent.metrics?.latency || agent.latency || 0;
                 const bw = agent.metrics?.bandwidth || agent.bandwidth || 0;
-                marker.title = `${city}, ${country}\nLatency: ${lat}ms\nBandwidth: ${bw}Mbps\nCaps: ${capLevel}`;
+                marker.title = `${agent.isMe ? '⭐ YOU - ' : ''}${city}, ${country}\nLatency: ${lat}ms\nBandwidth: ${bw}Mbps\nCaps: ${capLevel}`;
                 
                 container.appendChild(marker);
             });
@@ -1279,17 +1303,17 @@ PARADOX AGENT NETWORK
                 const city = agent.location?.city || agent.city || 'Unknown';
                 const country = agent.location?.country || agent.country || 'XX';
                 
-                const latC = lat < 50 ? 'good' : lat < 150 ? 'warn' : 'bad';
-                const bwC = bw > 50 ? 'good' : bw > 20 ? 'warn' : 'bad';
+                const latC = lat < 50 ? 'good' : lat < 150 ? 'warn' : lat === 0 ? '' : 'bad';
+                const bwC = bw > 50 ? 'good' : bw > 20 ? 'warn' : bw === 0 ? '' : 'bad';
                 
                 const card = document.createElement('div');
-                card.className = `agent-card cap-${Math.min(capLevel, 5)}`;
+                card.className = `agent-card cap-${Math.min(capLevel, 5)}${agent.isMe ? ' is-me' : ''}`;
                 card.innerHTML = `
-                    <div class="agent-addr">${addr.substr(0, 8)}...${addr.substr(-4)}</div>
-                    <div class="agent-location">📍 ${city}, ${country}</div>
+                    <div class="agent-addr">${agent.isMe ? '⭐ ' : ''}${addr.substr(0, 8)}...${addr.substr(-4)}</div>
+                    <div class="agent-location">📍 ${city}${agent.isMe ? ' (YOU)' : ', ' + country}</div>
                     <div class="agent-metrics">
-                        <div class="metric"><div class="metric-value ${latC}">${lat}</div><div class="metric-label">MS</div></div>
-                        <div class="metric"><div class="metric-value ${bwC}">${bw}</div><div class="metric-label">MBPS</div></div>
+                        <div class="metric"><div class="metric-value ${latC}">${lat || '--'}</div><div class="metric-label">MS</div></div>
+                        <div class="metric"><div class="metric-value ${bwC}">${bw || '--'}</div><div class="metric-label">MBPS</div></div>
                         <div class="metric"><div class="metric-value good">${up}%</div><div class="metric-label">UP</div></div>
                     </div>
                 `;
@@ -1486,6 +1510,210 @@ PARADOX AGENT NETWORK
         }
         
         document.addEventListener('DOMContentLoaded', init);
+        
+        // ============== WALLET CONNECTION ==============
+        let connectedWallet = null;
+        let myAgent = null;
+        
+        document.getElementById('connectBtn').addEventListener('click', connectWallet);
+        
+        async function connectWallet() {
+            const btn = document.getElementById('connectBtn');
+            
+            // Check for Phantom
+            if (window.solana && window.solana.isPhantom) {
+                try {
+                    btn.textContent = 'CONNECTING...';
+                    const resp = await window.solana.connect();
+                    connectedWallet = resp.publicKey.toString();
+                    onWalletConnected(connectedWallet);
+                } catch (err) {
+                    console.error('Wallet connection failed:', err);
+                    btn.textContent = 'CONNECT';
+                    alert('Connection cancelled');
+                }
+            } 
+            // Check for Solflare
+            else if (window.solflare && window.solflare.isSolflare) {
+                try {
+                    btn.textContent = 'CONNECTING...';
+                    await window.solflare.connect();
+                    connectedWallet = window.solflare.publicKey.toString();
+                    onWalletConnected(connectedWallet);
+                } catch (err) {
+                    console.error('Wallet connection failed:', err);
+                    btn.textContent = 'CONNECT';
+                }
+            }
+            else {
+                // No wallet - show demo mode
+                alert('No Phantom/Solflare wallet detected.\n\nInstall Phantom: phantom.app\n\nShowing demo agent for now.');
+                connectedWallet = 'DEMO_' + Math.random().toString(36).substr(2, 40);
+                onWalletConnected(connectedWallet);
+            }
+        }
+        
+        function onWalletConnected(wallet) {
+            const btn = document.getElementById('connectBtn');
+            const addrSpan = document.getElementById('walletAddr');
+            
+            btn.textContent = 'CONNECTED';
+            btn.style.background = 'var(--neon-green)';
+            btn.style.color = 'var(--bg-void)';
+            
+            addrSpan.style.display = 'block';
+            addrSpan.textContent = wallet.substr(0, 4) + '...' + wallet.substr(-4);
+            
+            // Add MY agent to the map immediately
+            addMyAgent(wallet);
+            
+            // Register with API (if available)
+            registerAgent(wallet);
+            
+            console.log('[WAR ROOM] Wallet connected:', wallet);
+        }
+        
+        function addMyAgent(wallet) {
+            // Detect approximate location from timezone
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            let coords = { x: 50, y: 40 }; // Default: Europe
+            
+            // Map timezone to rough coordinates
+            if (tz.includes('America/Los') || tz.includes('America/San')) coords = { x: 12, y: 40 };
+            else if (tz.includes('America/New') || tz.includes('America/Toronto')) coords = { x: 22, y: 35 };
+            else if (tz.includes('America/Chicago')) coords = { x: 17, y: 38 };
+            else if (tz.includes('America/Denver')) coords = { x: 14, y: 38 };
+            else if (tz.includes('America/Sao') || tz.includes('America/Buenos')) coords = { x: 30, y: 68 };
+            else if (tz.includes('Europe/London')) coords = { x: 48, y: 28 };
+            else if (tz.includes('Europe/Paris') || tz.includes('Europe/Berlin')) coords = { x: 51, y: 30 };
+            else if (tz.includes('Europe/Moscow')) coords = { x: 60, y: 28 };
+            else if (tz.includes('Asia/Tokyo')) coords = { x: 85, y: 38 };
+            else if (tz.includes('Asia/Seoul')) coords = { x: 82, y: 40 };
+            else if (tz.includes('Asia/Shanghai') || tz.includes('Asia/Hong')) coords = { x: 76, y: 44 };
+            else if (tz.includes('Asia/Singapore')) coords = { x: 74, y: 56 };
+            else if (tz.includes('Asia/Dubai')) coords = { x: 60, y: 48 };
+            else if (tz.includes('Asia/Kolkata') || tz.includes('Asia/Mumbai')) coords = { x: 68, y: 48 };
+            else if (tz.includes('Australia')) coords = { x: 86, y: 72 };
+            else if (tz.includes('Africa')) coords = { x: 52, y: 55 };
+            
+            // Create MY agent object
+            myAgent = {
+                id: 'my_agent',
+                address: wallet,
+                city: 'Your Location',
+                country: tz.split('/')[0] || 'XX',
+                x: coords.x,
+                y: coords.y,
+                capabilityLevel: 3, // Assume medium capability
+                capabilities: ['relay', 'compute', 'verify'],
+                metrics: {
+                    latency: 0,
+                    bandwidth: 0,
+                    uptime: 100,
+                },
+                online: true,
+                isMe: true,
+            };
+            
+            // Add to agents array
+            agents = agents.filter(a => a.id !== 'my_agent');
+            agents.unshift(myAgent);
+            
+            // Re-render
+            renderAgentMarkers();
+            renderAgentList();
+            updateStats();
+            
+            // Run capability test in background
+            runCapabilityTest();
+        }
+        
+        async function runCapabilityTest() {
+            if (!myAgent) return;
+            
+            // Test latency
+            const start = performance.now();
+            try {
+                await fetch('https://api.devnet.solana.com', { method: 'HEAD', mode: 'no-cors' });
+                myAgent.metrics.latency = Math.floor(performance.now() - start);
+            } catch (e) {
+                myAgent.metrics.latency = 999;
+            }
+            
+            // Estimate bandwidth (rough)
+            const bwStart = performance.now();
+            try {
+                await fetch('https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png', { mode: 'no-cors' });
+                const bwTime = performance.now() - bwStart;
+                myAgent.metrics.bandwidth = Math.floor(50 / (bwTime / 1000)); // Rough estimate
+            } catch (e) {
+                myAgent.metrics.bandwidth = 10;
+            }
+            
+            // Update display
+            renderAgentList();
+            updateStats();
+            
+            console.log('[WAR ROOM] Capability test:', myAgent.metrics);
+        }
+        
+        async function registerAgent(wallet) {
+            // Try to register with API
+            const heartbeat = {
+                agentId: 'agent_' + wallet.substr(0, 16),
+                walletAddress: wallet,
+                version: '1.0.0',
+                platform: detectPlatform(),
+                status: 'online',
+                capabilities: ['relay', 'compute', 'verify'],
+                location: {
+                    country: Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[0] || 'XX',
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                },
+                config: {
+                    maxBandwidth: 50,
+                    maxCpu: 25,
+                    maxRam: 2048,
+                    dailyDataCap: 1000,
+                },
+                metrics: myAgent?.metrics || {
+                    latency: 50,
+                    bandwidth: 25,
+                    uptime: 0,
+                },
+                timestamp: Date.now(),
+            };
+            
+            // Try production API
+            try {
+                await fetch(`${API_BASE}/api/agent/heartbeat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(heartbeat),
+                });
+                console.log('[WAR ROOM] Registered with production API');
+            } catch (e) {
+                // Try local
+                try {
+                    await fetch(`${API_FALLBACK}/api/agent/heartbeat`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(heartbeat),
+                    });
+                    console.log('[WAR ROOM] Registered with local API');
+                } catch (e2) {
+                    console.log('[WAR ROOM] API not available - showing local agent only');
+                }
+            }
+        }
+        
+        function detectPlatform() {
+            const ua = navigator.userAgent.toLowerCase();
+            if (ua.includes('android')) return 'mobile';
+            if (ua.includes('iphone') || ua.includes('ipad')) return 'mobile';
+            if (ua.includes('windows') || ua.includes('mac') || ua.includes('linux')) return 'desktop';
+            return 'browser';
+        }
     </script>
 </body>
 </html>
